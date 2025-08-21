@@ -1,3 +1,3 @@
-Credenciales de prueba (sin cambios):
+Credenciales de prueba:
 Profesional: doctor@test.com / password123
 Propietario: propietario@test.com / password123

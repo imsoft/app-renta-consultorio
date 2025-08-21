@@ -1,11 +1,20 @@
+import { ThemeProvider } from "@/components/theme-provider";
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
-      {children}
-    </div>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="min-h-screen">
+        {children}
+      </div>
+    </ThemeProvider>
   );
 }
