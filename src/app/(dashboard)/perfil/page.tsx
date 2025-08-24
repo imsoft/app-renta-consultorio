@@ -138,7 +138,7 @@ function PerfilContent() {
   const [success, setSuccess] = useState("");
   const { user, logout } = useAuthStore();
 
-  const profileData = getProfileData(user?.tipo || "profesional");
+  const profileData = getProfileData(user?.role || "professional");
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -253,7 +253,7 @@ function PerfilContent() {
                           {profileData.nombre} {profileData.apellidos}
                         </h3>
                         <p className="text-muted-foreground">
-                          {profileData.tipo === "profesional" ? "Profesional de la salud" : "Propietario"}
+                          {profileData.tipo === "professional" ? "Profesional de la salud" : "Propietario"}
                         </p>
                         <Badge variant="secondary" className="mt-1">
                           Miembro desde {new Date(profileData.fechaRegistro).toLocaleDateString('es-ES', { 
@@ -390,7 +390,7 @@ function PerfilContent() {
                       />
                     </div>
 
-                    {profileData.tipo === "profesional" && (
+                    {profileData.tipo === "professional" && (
                       <>
                         <div className="grid sm:grid-cols-2 gap-4">
                           <FormField
@@ -499,7 +499,7 @@ function PerfilContent() {
                 <CardTitle>Estadísticas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {profileData.tipo === "profesional" ? (
+                {profileData.tipo === "professional" ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">

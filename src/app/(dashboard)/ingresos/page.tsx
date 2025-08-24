@@ -173,7 +173,7 @@ export default function IngresosPage() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user?.tipo !== "propietario") {
+    if (!isLoading && isAuthenticated && user?.role !== "owner") {
       router.push("/dashboard");
     }
   }, [isAuthenticated, isLoading, user, router]);
@@ -189,7 +189,7 @@ export default function IngresosPage() {
     );
   }
 
-  if (!isAuthenticated || user?.tipo !== "propietario") {
+  if (!isAuthenticated || user?.role !== "owner") {
     return (
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-[60vh]">

@@ -139,7 +139,7 @@ export default function FavoritosPage() {
   const { user, isAuthenticated } = useAuthStore();
 
   // Verificar si el usuario está autenticado y es profesional
-  if (!isAuthenticated || user?.tipo !== "profesional") {
+  if (!isAuthenticated || user?.role !== "professional") {
     return (
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-[60vh]">

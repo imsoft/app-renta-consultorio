@@ -4,10 +4,10 @@ import { persist } from 'zustand/middleware';
 interface User {
   id: string;
   nombre: string;
+  apellidos: string;
   email: string;
-  tipo: "profesional" | "propietario";
-  especialidad?: string;
-  verificado: boolean;
+  role: "professional" | "owner" | "admin";
+  avatar?: string | null;
 }
 
 interface RegisterData {
@@ -23,6 +23,8 @@ interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  setUser: (user: User) => void;
+  clearUser: () => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (userData: RegisterData) => Promise<boolean>;
@@ -47,9 +49,8 @@ export const useAuthStore = create<AuthStore>()(
             id: "1",
             nombre: "Dr. Laura Martínez",
             email: "doctor@test.com",
-            tipo: "profesional",
-            especialidad: "Dermatóloga",
-            verificado: true
+            role: "professional",
+            apellidos: "Martínez"
           };
           
           set({ 
@@ -63,8 +64,8 @@ export const useAuthStore = create<AuthStore>()(
             id: "2",
             nombre: "Carlos Mendoza",
             email: "propietario@test.com",
-            tipo: "propietario",
-            verificado: true
+            role: "owner",
+            apellidos: "Mendoza"
           };
           
           set({ 
@@ -90,9 +91,8 @@ export const useAuthStore = create<AuthStore>()(
           id: Date.now().toString(),
           nombre: `${userData.nombre} ${userData.apellido}`,
           email: userData.email,
-          tipo: userData.tipo,
-          especialidad: userData.especialidad,
-          verificado: false
+                      role: userData.tipo === "profesional" ? "professional" : "owner",
+            apellidos: userData.apellido
         };
         
         set({ 
@@ -101,6 +101,20 @@ export const useAuthStore = create<AuthStore>()(
           isLoading: false 
         });
         return true;
+      },
+
+      setUser: (user: User) => {
+        set({ 
+          user, 
+          isAuthenticated: true 
+        });
+      },
+
+      clearUser: () => {
+        set({ 
+          user: null, 
+          isAuthenticated: false 
+        });
       },
 
       logout: () => {

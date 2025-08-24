@@ -251,7 +251,7 @@ export default function CrearConsultorioPage() {
   };
 
   // Verificar si el usuario está autenticado y es propietario
-  if (!isAuthenticated || user?.tipo !== "propietario") {
+  if (!isAuthenticated || user?.role !== "owner") {
     return (
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-[60vh]">

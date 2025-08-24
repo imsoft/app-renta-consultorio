@@ -154,7 +154,7 @@ export default function ReservasPage() {
 
   useEffect(() => {
     if (user) {
-      const data = user.tipo === "profesional" ? reservasData.profesional : reservasData.propietario;
+      const data = user.role === "professional" ? reservasData.profesional : reservasData.propietario;
       setReservas(data);
     }
   }, [user]);
@@ -180,7 +180,7 @@ export default function ReservasPage() {
     const cumpleConsultorio = filtroConsultorio === "todos" || reserva.consultorio === filtroConsultorio;
     const cumpleBusqueda = busqueda === "" || 
       reserva.consultorio.toLowerCase().includes(busqueda.toLowerCase()) ||
-      (user?.tipo === "profesional" ? reserva.propietario : reserva.profesional)?.toLowerCase().includes(busqueda.toLowerCase());
+              (user?.role === "professional" ? reserva.propietario : reserva.profesional)?.toLowerCase().includes(busqueda.toLowerCase());
     
     return cumpleEstado && cumpleConsultorio && cumpleBusqueda;
   });
@@ -239,10 +239,10 @@ export default function ReservasPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {user?.tipo === "profesional" ? "Mis Reservas" : "Gestionar Reservas"}
+              {user?.role === "professional" ? "Mis Reservas" : "Gestionar Reservas"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {user?.tipo === "profesional" 
+              {user?.role === "professional" 
                 ? "Gestiona tus reservas de consultorios" 
                 : "Administra las reservas de tus consultorios"
               }
@@ -386,7 +386,7 @@ export default function ReservasPage() {
                             {reserva.consultorio}
                           </h3>
                           <p className="text-muted-foreground">
-                            {user?.tipo === "profesional" ? reserva.propietario : reserva.profesional}
+                            {user?.role === "professional" ? reserva.propietario : reserva.profesional}
                           </p>
                         </div>
                         <Badge className={`${getEstadoColor(reserva.estado)}`}>
@@ -433,7 +433,7 @@ export default function ReservasPage() {
                         </Button>
                       </div>
                       
-                      {user?.tipo === "propietario" && reserva.estado === "pendiente" && (
+                      {user?.role === "owner" && reserva.estado === "pendiente" && (
                         <div className="flex space-x-2">
                           <Button 
                             size="sm" 

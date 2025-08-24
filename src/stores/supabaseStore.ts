@@ -5,11 +5,30 @@ import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/supabase'
 
 type Tables = Database['public']['Tables']
-type Profiles = Tables['profiles']['Row']
 type Consultorios = Tables['consultorios']['Row']
 type Reservas = Tables['reservas']['Row']
 type Favoritos = Tables['favoritos']['Row']
 type Calificaciones = Tables['calificaciones']['Row']
+
+interface UserData {
+  nombre: string
+  apellidos: string
+  role?: 'professional' | 'owner' | 'admin'
+}
+
+interface ProfileUpdates {
+  nombre: string
+  apellidos: string
+  avatar?: string | null
+}
+
+interface ConsultorioFilters {
+  ciudad?: string
+  estado?: string
+  precio_min?: number
+  precio_max?: number
+  capacidad?: number
+}
 
 interface SupabaseState {
   // Estado de autenticación
@@ -24,29 +43,29 @@ interface SupabaseState {
   calificaciones: Calificaciones[]
   
   // Funciones de autenticación
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>
+  signUp: (email: string, password: string, userData: UserData) => Promise<{ error: unknown }>
   signOut: () => Promise<void>
-  updateProfile: (updates: any) => Promise<{ error: any }>
+  updateProfile: (updates: ProfileUpdates) => Promise<{ error: unknown }>
   
   // Funciones de datos
-  getConsultorios: (filters?: any) => Promise<{ data: any, error: any }>
-  getConsultorio: (id: string) => Promise<{ data: any, error: any }>
-  createConsultorio: (consultorio: any) => Promise<{ data: any, error: any }>
-  updateConsultorio: (id: string, updates: any) => Promise<{ data: any, error: any }>
-  deleteConsultorio: (id: string) => Promise<{ error: any }>
+  getConsultorios: (filters?: ConsultorioFilters) => Promise<{ data: Consultorios[] | null, error: unknown }>
+  getConsultorio: (id: string) => Promise<{ data: Consultorios | null, error: unknown }>
+  createConsultorio: (consultorio: Omit<Consultorios, 'id' | 'created_at' | 'updated_at'>) => Promise<{ data: Consultorios | null, error: unknown }>
+  updateConsultorio: (id: string, updates: Partial<Consultorios>) => Promise<{ data: Consultorios | null, error: unknown }>
+  deleteConsultorio: (id: string) => Promise<{ error: unknown }>
   
-  getReservas: (userId: string) => Promise<{ data: any, error: any }>
-  createReserva: (reserva: any) => Promise<{ data: any, error: any }>
-  updateReserva: (id: string, updates: any) => Promise<{ data: any, error: any }>
+  getReservas: (userId: string) => Promise<{ data: Reservas[] | null, error: unknown }>
+  createReserva: (reserva: Omit<Reservas, 'id' | 'created_at' | 'updated_at'>) => Promise<{ data: Reservas | null, error: unknown }>
+  updateReserva: (id: string, updates: Partial<Reservas>) => Promise<{ data: Reservas | null, error: unknown }>
   
-  getFavoritos: (userId: string) => Promise<{ data: any, error: any }>
-  addFavorito: (userId: string, consultorioId: string) => Promise<{ data: any, error: any }>
-  removeFavorito: (userId: string, consultorioId: string) => Promise<{ error: any }>
-  isFavorito: (userId: string, consultorioId: string) => Promise<{ isFavorito: boolean, error: any }>
+  getFavoritos: (userId: string) => Promise<{ data: Favoritos[] | null, error: unknown }>
+  addFavorito: (userId: string, consultorioId: string) => Promise<{ data: Favoritos | null, error: unknown }>
+  removeFavorito: (userId: string, consultorioId: string) => Promise<{ error: unknown }>
+  isFavorito: (userId: string, consultorioId: string) => Promise<{ isFavorito: boolean, error: unknown }>
   
-  getCalificaciones: (consultorioId: string) => Promise<{ data: any, error: any }>
-  createCalificacion: (calificacion: any) => Promise<{ data: any, error: any }>
+  getCalificaciones: (consultorioId: string) => Promise<{ data: Calificaciones[] | null, error: unknown }>
+  createCalificacion: (calificacion: Omit<Calificaciones, 'id' | 'created_at'>) => Promise<{ data: Calificaciones | null, error: unknown }>
   
   // Funciones de estado
   setUser: (user: User | null) => void
@@ -78,7 +97,7 @@ export const useSupabaseStore = create<SupabaseState>()(
         return { error }
       },
 
-      signUp: async (email: string, password: string, userData: any) => {
+      signUp: async (email: string, password: string, userData: UserData) => {
         set({ loading: true })
         const { error } = await supabase.auth.signUp({
           email,
@@ -108,9 +127,9 @@ export const useSupabaseStore = create<SupabaseState>()(
         })
       },
 
-      updateProfile: async (updates: any) => {
+      updateProfile: async (updates: ProfileUpdates) => {
         const { user } = get()
-        if (!user) return { error: 'No user logged in' }
+        if (!user) return { error: new Error('No user logged in') }
         
         const { error } = await supabase
           .from('profiles')
@@ -125,7 +144,7 @@ export const useSupabaseStore = create<SupabaseState>()(
       },
 
       // Funciones de consultorios
-      getConsultorios: async (filters?: any) => {
+      getConsultorios: async (filters?: ConsultorioFilters) => {
         let query = supabase
           .from('consultorios')
           .select(`
@@ -177,7 +196,7 @@ export const useSupabaseStore = create<SupabaseState>()(
         return { data, error }
       },
 
-      createConsultorio: async (consultorio: any) => {
+      createConsultorio: async (consultorio: Omit<Consultorios, 'id' | 'created_at' | 'updated_at'>) => {
         const { data, error } = await supabase
           .from('consultorios')
           .insert(consultorio)
@@ -186,7 +205,7 @@ export const useSupabaseStore = create<SupabaseState>()(
         return { data, error }
       },
 
-      updateConsultorio: async (id: string, updates: any) => {
+      updateConsultorio: async (id: string, updates: Partial<Consultorios>) => {
         const { data, error } = await supabase
           .from('consultorios')
           .update(updates)
@@ -227,7 +246,7 @@ export const useSupabaseStore = create<SupabaseState>()(
         return { data, error }
       },
 
-      createReserva: async (reserva: any) => {
+      createReserva: async (reserva: Omit<Reservas, 'id' | 'created_at' | 'updated_at'>) => {
         const { data, error } = await supabase
           .from('reservas')
           .insert(reserva)
@@ -236,7 +255,7 @@ export const useSupabaseStore = create<SupabaseState>()(
         return { data, error }
       },
 
-      updateReserva: async (id: string, updates: any) => {
+      updateReserva: async (id: string, updates: Partial<Reservas>) => {
         const { data, error } = await supabase
           .from('reservas')
           .update(updates)
@@ -323,7 +342,7 @@ export const useSupabaseStore = create<SupabaseState>()(
         return { data, error }
       },
 
-      createCalificacion: async (calificacion: any) => {
+      createCalificacion: async (calificacion: Omit<Calificaciones, 'id' | 'created_at'>) => {
         const { data, error } = await supabase
           .from('calificaciones')
           .upsert(calificacion, { onConflict: 'consultorio_id,profesional_id' })

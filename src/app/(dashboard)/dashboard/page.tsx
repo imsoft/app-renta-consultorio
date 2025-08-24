@@ -112,14 +112,14 @@ export default function DashboardPage() {
               Bienvenido, {user?.nombre}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {user?.tipo === "profesional" ? "Panel de Profesional" : "Panel de Propietario"}
+              {user?.role === "professional" ? "Panel de Profesional" : "Panel de Propietario"}
             </p>
           </div>
         </div>
 
         {/* Estadísticas principales */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {user?.tipo === "profesional" ? (
+          {user?.role === "professional" ? (
             <>
               <Card>
                 <CardContent className="p-6">
@@ -218,7 +218,7 @@ export default function DashboardPage() {
 
         {/* Contenido específico por tipo de usuario */}
         <div className="grid lg:grid-cols-2 gap-8">
-          {user?.tipo === "profesional" ? (
+          {user?.role === "professional" ? (
             <>
               {/* Próxima reserva */}
               <Card>
@@ -357,7 +357,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {user?.tipo === "profesional" ? (
+                {user?.role === "professional" ? (
                   <>
                     <Button asChild variant="outline" className="h-auto p-4 flex-col">
                       <Eye className="h-6 w-6 mb-2" />

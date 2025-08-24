@@ -42,7 +42,7 @@ export default function Header({ currentPage = "/" }: { currentPage?: string }) 
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 
-                {user?.tipo === "profesional" && (
+                {user?.role === "professional" && (
                   <>
                     <Button asChild variant="ghost" className="text-primary hover:text-primary/80">
                       <Link href="/reservas">Reservas</Link>
@@ -52,7 +52,7 @@ export default function Header({ currentPage = "/" }: { currentPage?: string }) 
                     </Button>
                   </>
                 )}
-                {user?.tipo === "propietario" && (
+                {user?.role === "owner" && (
                   <>
                     <Button asChild variant="ghost" className="text-primary hover:text-primary/80">
                       <Link href="/reservas">Reservas</Link>
@@ -128,7 +128,7 @@ export default function Header({ currentPage = "/" }: { currentPage?: string }) 
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 
-                {user?.tipo === "profesional" && (
+                {user?.role === "professional" && (
                   <>
                     <Button asChild variant="ghost" className="w-full justify-start">
                       <Link href="/reservas">Reservas</Link>
@@ -139,7 +139,7 @@ export default function Header({ currentPage = "/" }: { currentPage?: string }) 
                   </>
                 )}
                 
-                {user?.tipo === "propietario" && (
+                {user?.role === "owner" && (
                   <>
                     <Button asChild variant="ghost" className="w-full justify-start">
                       <Link href="/reservas">Reservas</Link>
