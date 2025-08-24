@@ -26,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAuthStore } from "@/stores/authStore";
+import { useSupabaseStore } from "@/stores/supabaseStore";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -52,7 +52,7 @@ export default function RegistroPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { register, isLoading } = useAuthStore();
+  const { signUp, loading } = useSupabaseStore();
 
   const form = useForm<RegistroFormValues>({
     resolver: zodResolver(registroSchema),
@@ -69,19 +69,16 @@ export default function RegistroPage() {
   const onSubmit = async (data: RegistroFormValues) => {
     setError("");
     
-    const success = await register({
+    const { error } = await signUp(data.email, data.password, {
       nombre: data.nombre,
-      apellido: data.apellido,
-      email: data.email,
-      password: data.password,
-      tipo: "profesional", // Por defecto, se puede cambiar después
-      especialidad: "Medicina General"
+      apellidos: data.apellido,
+      role: "professional"
     });
     
-    if (success) {
-      router.push("/dashboard");
-    } else {
+    if (error) {
       setError("Error al crear la cuenta. Intenta de nuevo.");
+    } else {
+      router.push("/dashboard");
     }
   };
 
@@ -292,9 +289,9 @@ export default function RegistroPage() {
                   <Button 
                     type="submit" 
                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                    disabled={isLoading}
+                    disabled={loading}
                   >
-                    {isLoading ? (
+                                          {loading ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
                         <span>Creando cuenta...</span>

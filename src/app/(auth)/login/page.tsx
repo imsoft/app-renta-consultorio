@@ -26,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabaseStore } from "@/stores/supabaseStore";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { signIn, loading } = useAuth();
+  const { signIn, loading } = useSupabaseStore();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
