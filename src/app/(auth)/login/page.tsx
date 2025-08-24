@@ -26,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login, isLoading } = useAuthStore();
+  const { signIn, loading } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -56,14 +56,14 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setError("");
-    const success = await login(data.email, data.password);
+    const { error } = await signIn(data.email, data.password);
 
-    if (success) {
-      router.push("/dashboard");
-    } else {
+    if (error) {
       setError(
-        "Credenciales incorrectas. Intenta con doctor@test.com / password123 o propietario@test.com / password123"
+        "Credenciales incorrectas. Verifica tu email y contraseña."
       );
+    } else {
+      router.push("/dashboard");
     }
   };
 
@@ -205,9 +205,9 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-                    disabled={isLoading}
+                    disabled={loading}
                   >
-                    {isLoading ? (
+                                          {loading ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
                         <span>Iniciando sesión...</span>
