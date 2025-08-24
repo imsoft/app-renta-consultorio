@@ -290,7 +290,7 @@ export default function ReportarProblemaPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Shield className="h-4 w-4 text-green-600" />
-                  <span>Seguridad: security@medirenta.com</span>
+                  <span>Seguridad: security@wellpoint.com</span>
                 </div>
               </CardContent>
             </Card>

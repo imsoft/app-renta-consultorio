@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MediRenta - Alquiler de Consultorios Médicos",
+  title: "WellPoint - Alquiler de Consultorios Médicos",
   description: "Conectamos profesionales de la salud con espacios médicos de calidad. La plataforma más confiable para rentar y encontrar consultorios médicos.",
 };
 

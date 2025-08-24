@@ -121,7 +121,7 @@ export default function RegistroPage() {
                 Crear Cuenta
               </CardTitle>
               <p className="text-muted-foreground">
-                Únete a MediRenta y comienza a conectar
+                Únete a WellPoint y comienza a conectar
               </p>
             </CardHeader>
             

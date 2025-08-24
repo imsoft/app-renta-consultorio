@@ -76,7 +76,7 @@ const consultorio = {
     tipo: "Propietario particular",
     verificado: true,
     telefono: "+52 55 1234 5678",
-    email: "carlos.mendoza@medirenta.com",
+            email: "carlos.mendoza@wellpoint.com",
     experiencia: "Propietario desde 2020",
     calificacion: 4.9
   },

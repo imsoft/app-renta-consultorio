@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'medirenta-auth',
+      name: 'wellpoint-auth',
       partialize: (state) => ({ 
         user: state.user, 
         isAuthenticated: state.isAuthenticated 

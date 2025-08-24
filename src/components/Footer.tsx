@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div className="sm:col-span-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4">MediRenta</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4">WellPoint</h3>
             <p className="text-muted-foreground mb-4 max-w-md text-sm sm:text-base">
               Conectando profesionales de la salud con espacios médicos de calidad. 
               La plataforma más confiable para rentar y encontrar consultorios médicos.
@@ -43,7 +43,7 @@ export default function Footer() {
         <div className="border-t border-border pt-6 sm:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <p className="text-muted-foreground text-xs sm:text-sm">
-              &copy; 2025 MediRenta. Todos los derechos reservados.
+              &copy; 2025 WellPoint. Todos los derechos reservados.
             </p>
             <div className="flex flex-wrap justify-center sm:justify-end space-x-4 sm:space-x-6">
               <Link href="/terminos-servicio" className="text-muted-foreground hover:text-primary transition-colors text-xs sm:text-sm">

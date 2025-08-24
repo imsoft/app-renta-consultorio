@@ -17,7 +17,7 @@ const faqData: FAQItem[] = [
   // Cuentas y perfiles
   {
     id: "1",
-    question: "¿Cómo creo una cuenta en MediRenta?",
+    question: "¿Cómo creo una cuenta en WellPoint?",
     answer: "Para crear una cuenta, ve a la página de registro y completa el formulario con tu información personal. Necesitarás verificar tu email y completar tu perfil profesional.",
     category: "Cuentas"
   },
@@ -143,7 +143,7 @@ export default function FAQPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-3">Preguntas Frecuentes</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Encuentra respuestas rápidas a las preguntas más comunes sobre MediRenta
+            Encuentra respuestas rápidas a las preguntas más comunes sobre WellPoint
           </p>
         </div>
 

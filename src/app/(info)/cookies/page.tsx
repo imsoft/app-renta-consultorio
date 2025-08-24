@@ -333,7 +333,7 @@ export default function CookiesPage() {
                 Si tienes preguntas sobre nuestra política de cookies, contáctanos:
               </p>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Email: privacy@medirenta.com</p>
+                <p>Email: privacy@wellpoint.com</p>
                 <p>Teléfono: +1 (555) 123-4567</p>
                 <p>Asunto: Consulta sobre cookies</p>
               </div>

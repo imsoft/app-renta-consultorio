@@ -108,7 +108,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-              ¿Por qué elegir MediRenta?
+              ¿Por qué elegir WellPoint?
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground">
               La plataforma más confiable para rentar espacios médicos

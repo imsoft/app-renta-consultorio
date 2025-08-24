@@ -62,7 +62,7 @@ const getProfileData = (userType: string) => {
     return {
       nombre: "María",
       apellidos: "González López",
-      email: "maria.gonzalez@medirenta.com",
+              email: "maria.gonzalez@wellpoint.com",
       telefono: "+52 55 9876 5432",
       fechaNacimiento: "1985-03-15",
       direccion: "Av. Insurgentes Sur 1234",
@@ -86,7 +86,7 @@ const getProfileData = (userType: string) => {
     return {
       nombre: "Carlos",
       apellidos: "Mendoza Ruiz",
-      email: "carlos.mendoza@medirenta.com",
+              email: "carlos.mendoza@wellpoint.com",
       telefono: "+52 55 1234 5678",
       fechaNacimiento: "1978-07-22",
       direccion: "Calle Reforma 567",

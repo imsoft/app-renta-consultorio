@@ -22,7 +22,7 @@ export default function PoliticaPrivacidadPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              En MediRenta, tu privacidad es fundamental. Esta política describe cómo recopilamos, 
+              En WellPoint, tu privacidad es fundamental. Esta política describe cómo recopilamos, 
               utilizamos y protegemos tu información personal cuando utilizas nuestra plataforma.
             </p>
             <div className="flex flex-wrap gap-2">
@@ -322,7 +322,7 @@ export default function PoliticaPrivacidadPage() {
               <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  <span>Email: privacy@medirenta.com</span>
+                  <span>Email: privacy@wellpoint.com</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />
@@ -330,7 +330,7 @@ export default function PoliticaPrivacidadPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
-                  <span>Oficial de Privacidad: privacy@medirenta.com</span>
+                  <span>Oficial de Privacidad: privacy@wellpoint.com</span>
                 </div>
               </div>
             </CardContent>
@@ -339,7 +339,7 @@ export default function PoliticaPrivacidadPage() {
 
         <div className="text-center mt-12">
           <p className="text-sm text-muted-foreground">
-            Al usar MediRenta, aceptas las prácticas descritas en esta política de privacidad.
+            Al usar WellPoint, aceptas las prácticas descritas en esta política de privacidad.
           </p>
         </div>
       </div>

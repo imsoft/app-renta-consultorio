@@ -143,7 +143,7 @@ export default function ComoFuncionaPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              ¿Cómo funciona MediRenta?
+              ¿Cómo funciona WellPoint?
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
               Conectamos profesionales de la salud con espacios médicos de calidad. 
@@ -256,7 +256,7 @@ export default function ComoFuncionaPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              ¿Por qué elegir MediRenta?
+              ¿Por qué elegir WellPoint?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               La plataforma más confiable y segura para rentar espacios médicos
@@ -396,7 +396,7 @@ export default function ComoFuncionaPage() {
             ¿Listo para empezar?
           </h2>
           <p className="text-lg text-primary-foreground/80 mb-8">
-            Únete a nuestra comunidad y descubre cómo MediRenta puede ayudarte
+            Únete a nuestra comunidad y descubre cómo WellPoint puede ayudarte
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild variant="secondary" className="bg-background text-primary hover:bg-background/90">
@@ -435,7 +435,7 @@ export default function ComoFuncionaPage() {
                 <Mail className="h-6 w-6 text-primary" />
               </div>
               <h3 className="font-semibold mb-2">Escríbenos</h3>
-              <p className="text-muted-foreground text-sm">soporte@medirenta.com</p>
+                              <p className="text-muted-foreground text-sm">soporte@wellpoint.com</p>
             </div>
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">

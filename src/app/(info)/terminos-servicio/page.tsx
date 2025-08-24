@@ -22,7 +22,7 @@ export default function TerminosServicioPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              Bienvenido a MediRenta. Al acceder y utilizar nuestra plataforma, aceptas estar sujeto a estos términos de servicio.
+              Bienvenido a WellPoint. Al acceder y utilizar nuestra plataforma, aceptas estar sujeto a estos términos de servicio.
               Si no estás de acuerdo con alguna parte de estos términos, no debes utilizar nuestro servicio.
             </p>
             <div className="flex flex-wrap gap-2">
@@ -42,7 +42,7 @@ export default function TerminosServicioPage() {
               <div>
                 <h4 className="font-semibold mb-2">&quot;Plataforma&quot;</h4>
                 <p className="text-sm text-muted-foreground">
-                  Se refiere al sitio web MediRenta.com y todas las aplicaciones móviles asociadas.
+                  Se refiere al sitio web WellPoint.com y todas las aplicaciones móviles asociadas.
                 </p>
               </div>
               <div>
@@ -190,7 +190,7 @@ export default function TerminosServicioPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                MediRenta actúa como intermediario entre propietarios y profesionales. No somos responsables por:
+                WellPoint actúa como intermediario entre propietarios y profesionales. No somos responsables por:
               </p>
               <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                 <li>• La calidad o condición de los espacios rentados</li>
@@ -240,7 +240,7 @@ export default function TerminosServicioPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Estos términos se rigen por las leyes del país donde opera MediRenta. 
+                Estos términos se rigen por las leyes del país donde opera WellPoint. 
                 Cualquier disputa será resuelta en los tribunales competentes de dicha jurisdicción.
               </p>
             </CardContent>
@@ -256,7 +256,7 @@ export default function TerminosServicioPage() {
                 Si tienes preguntas sobre estos términos, contáctanos:
               </p>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>Email: legal@medirenta.com</p>
+                <p>Email: legal@wellpoint.com</p>
                 <p>Teléfono: +1 (555) 123-4567</p>
                 <p>Dirección: [Dirección de la empresa]</p>
               </div>
@@ -266,7 +266,7 @@ export default function TerminosServicioPage() {
 
         <div className="text-center mt-12">
           <p className="text-sm text-muted-foreground">
-            Al continuar usando MediRenta, confirmas que has leído, entendido y aceptado estos términos de servicio.
+            Al continuar usando WellPoint, confirmas que has leído, entendido y aceptado estos términos de servicio.
           </p>
         </div>
       </div>

@@ -25,7 +25,7 @@ import Link from "next/link";
 
 // Información de contacto
 const contactInfo = {
-  email: "contacto@medirenta.com",
+          email: "contacto@wellpoint.com",
   whatsapp: "+52 55 1234 5678",
   whatsappLink: "https://wa.me/525512345678",
   horario: "Lunes a Viernes: 9:00 AM - 6:00 PM",

@@ -99,7 +99,7 @@ export default function LoginPage() {
                 Iniciar Sesión
               </CardTitle>
               <p className="text-muted-foreground">
-                Accede a tu cuenta de MediRenta
+                Accede a tu cuenta de WellPoint
               </p>
             </CardHeader>
 

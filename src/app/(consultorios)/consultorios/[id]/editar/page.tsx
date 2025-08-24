@@ -194,7 +194,7 @@ const getConsultorioData = (id: string) => {
       },
       contacto: {
         telefono: "+52 55 1234 5678",
-        email: "carlos.mendoza@medirenta.com",
+        email: "carlos.mendoza@wellpoint.com",
         whatsapp: true,
       },
       propietario: "Carlos Mendoza"
