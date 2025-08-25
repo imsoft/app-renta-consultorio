@@ -1,48 +1,75 @@
 "use client";
 
-import { Search, MapPin, Calendar, Star, Users, Shield, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, MapPin, Calendar, Star, Users, Shield, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/stores/authStore";
 
-// Datos simulados de consultorios
-const consultoriosDestacados = [
-  {
-    id: 1,
-    nombre: "Consultorio Médico Central",
-    ubicacion: "Centro Histórico, CDMX",
-    precio: 800,
-    calificacion: 4.8,
-    especialidades: ["Medicina General", "Cardiología"],
-    imagen: "/api/placeholder/300/200",
-    disponible: true
-  },
-  {
-    id: 2,
-    nombre: "Clínica Especializada Norte",
-    ubicacion: "Polanco, CDMX",
-    precio: 1200,
-    calificacion: 4.9,
-    especialidades: ["Dermatología", "Oftalmología"],
-    imagen: "/api/placeholder/300/200",
-    disponible: true
-  },
-  {
-    id: 3,
-    nombre: "Consultorio Familiar Sur",
-    ubicacion: "Coyoacán, CDMX",
-    precio: 600,
-    calificacion: 4.7,
-    especialidades: ["Pediatría", "Ginecología"],
-    imagen: "/api/placeholder/300/200",
-    disponible: true
-  }
-];
+interface Consultorio {
+  id: string;
+  titulo: string;
+  direccion: string;
+  ciudad: string;
+  estado: string;
+  precio_por_hora: number;
+  calificacion_promedio: number;
+  especialidades: string[] | null;
+  imagen_principal: string | null;
+  activo: boolean;
+  aprobado: boolean;
+}
 
 export default function Home() {
+  const [consultorios, setConsultorios] = useState<Consultorio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    fetchConsultorios();
+  }, []);
+
+  const fetchConsultorios = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('consultorios')
+        .select(`
+          id,
+          titulo,
+          direccion,
+          ciudad,
+          estado,
+          precio_por_hora,
+          calificacion_promedio,
+          especialidades,
+          imagen_principal,
+          activo,
+          aprobado
+        `)
+        .eq('activo', true)
+        .eq('aprobado', true)
+        .order('calificacion_promedio', { ascending: false })
+        .limit(3);
+
+      if (error) {
+        console.error('Error fetching consultorios:', error);
+        return;
+      }
+
+      setConsultorios(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -197,52 +224,125 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {consultoriosDestacados.map((consultorio) => (
-              <Card key={consultorio.id} className="overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="h-40 sm:h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-primary mx-auto mb-2" />
-                    <p className="text-primary font-medium text-sm sm:text-base">Consultorio {consultorio.id}</p>
-                  </div>
+          {loading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="overflow-hidden animate-pulse">
+                  <div className="h-40 sm:h-48 bg-muted"></div>
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="h-6 bg-muted rounded mb-2"></div>
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="h-8 bg-muted rounded mb-4"></div>
+                    <div className="h-10 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : consultorios.length > 0 ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {consultorios.map((consultorio) => (
+                <Link key={consultorio.id} href={`/consultorios/${consultorio.id}`}>
+                  <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer hover:border-primary/50">
+                    <div className="h-40 sm:h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center">
+                      {consultorio.imagen_principal ? (
+                        <img 
+                          src={consultorio.imagen_principal} 
+                          alt={consultorio.titulo}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-center">
+                          <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-primary mx-auto mb-2" />
+                          <p className="text-primary font-medium text-sm sm:text-base">Consultorio</p>
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground">{consultorio.titulo}</h3>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="ml-1 text-sm text-muted-foreground">
+                            {consultorio.calificacion_promedio > 0 ? consultorio.calificacion_promedio.toFixed(1) : '5.0'}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-muted-foreground mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
+                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                        {consultorio.ciudad}, {consultorio.estado}
+                      </p>
+                      <div className="mb-3 sm:mb-4">
+                        <p className="text-xl sm:text-2xl font-bold text-primary">${consultorio.precio_por_hora}/hora</p>
+                      </div>
+                      {consultorio.especialidades && consultorio.especialidades.length > 0 && (
+                        <div className="mb-4">
+                          <div className="flex flex-wrap gap-1">
+                            {consultorio.especialidades.slice(0, 3).map((especialidad, index) => (
+                              <Badge key={index} variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+                                {especialidad}
+                              </Badge>
+                            ))}
+                            {consultorio.especialidades.length > 3 && (
+                              <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                                +{consultorio.especialidades.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-sm sm:text-base">
+                        Ver detalles
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            // CTA cuando no hay consultorios
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <div className="w-24 h-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Plus className="h-12 w-12 text-primary" />
                 </div>
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground">{consultorio.nombre}</h3>
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm text-muted-foreground">{consultorio.calificacion}</span>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
-                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                    {consultorio.ubicacion}
-                  </p>
-                  <div className="mb-3 sm:mb-4">
-                    <p className="text-xl sm:text-2xl font-bold text-primary">${consultorio.precio}/hora</p>
-                  </div>
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-1">
-                      {consultorio.especialidades.map((especialidad, index) => (
-                        <Badge key={index} variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                          {especialidad}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-sm sm:text-base">
-                    Ver detalles
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                <h3 className="text-2xl font-bold text-foreground mb-4">¡Sé el primero!</h3>
+                <p className="text-muted-foreground mb-6">
+                  Aún no hay consultorios publicados. ¿Tienes un espacio médico? ¡Publica el primer consultorio en WellPoint!
+                </p>
+                <div className="space-y-3">
+                  {user?.role === 'owner' ? (
+                    <Link href="/consultorios/crear">
+                      <Button size="lg" className="w-full">
+                        <Plus className="h-5 w-5 mr-2" />
+                        Publicar mi consultorio
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/registro">
+                      <Button size="lg" className="w-full">
+                        Registrarme como propietario
+                      </Button>
+                    </Link>
+                  )}
+                  <Link href="/como-funciona">
+                    <Button variant="outline" size="lg" className="w-full">
+                      Conocer cómo funciona
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <div className="text-center mt-8 sm:mt-12">
-            <Button variant="outline" className="px-6 sm:px-8 py-3 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-sm sm:text-base">
-              Ver todos los consultorios
-            </Button>
-          </div>
+          {consultorios.length > 0 && (
+            <div className="text-center mt-8 sm:mt-12">
+              <Link href="/consultorios">
+                <Button variant="outline" className="px-6 sm:px-8 py-3 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-sm sm:text-base">
+                  Ver todos los consultorios
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

@@ -3,7 +3,7 @@
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Search,
@@ -19,6 +19,7 @@ import {
   Wifi,
   Car,
   Accessibility,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -33,9 +34,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/stores/authStore";
+
+interface Consultorio {
+  id: string;
+  titulo: string;
+  direccion: string;
+  ciudad: string;
+  estado: string;
+  precio_por_hora: number;
+  calificacion_promedio: number;
+  total_calificaciones: number;
+  especialidades: string[] | null;
+  equipamiento: string[] | null;
+  servicios: string[] | null;
+  imagen_principal: string | null;
+  activo: boolean;
+  aprobado: boolean;
+  horario_apertura?: string;
+  horario_cierre?: string;
+  wifi: boolean;
+  estacionamiento: boolean;
+  propietario?: {
+    full_name: string;
+  };
+}
 
 // Datos simulados de consultorios (como fallback)
-const consultorios = [
+const consultoriosFallback = [
   {
     id: 1,
     nombre: "Consultorio Médico Central",
@@ -175,6 +202,8 @@ const zonas = [
 ];
 
 export default function ConsultoriosPage() {
+  const [consultorios, setConsultorios] = useState<Consultorio[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEspecialidades, setSelectedEspecialidades] = useState<
     string[]
@@ -183,26 +212,81 @@ export default function ConsultoriosPage() {
   const [priceRange, setPriceRange] = useState([0, 2000]);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("relevance");
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    fetchConsultorios();
+  }, []);
+
+  const fetchConsultorios = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('consultorios')
+        .select(`
+          id,
+          titulo,
+          direccion,
+          ciudad,
+          estado,
+          precio_por_hora,
+          calificacion_promedio,
+          total_calificaciones,
+          especialidades,
+          equipamiento,
+          servicios,
+          imagen_principal,
+          activo,
+          aprobado,
+          horario_apertura,
+          horario_cierre,
+          wifi,
+          estacionamiento,
+          profiles:propietario_id (
+            full_name
+          )
+        `)
+        .eq('activo', true)
+        .eq('aprobado', true)
+        .order('calificacion_promedio', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching consultorios:', error);
+        setConsultorios([]);
+        return;
+      }
+
+      setConsultorios(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      setConsultorios([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrar consultorios
   const filteredConsultorios = consultorios.filter((consultorio) => {
     const matchesSearch =
-      consultorio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      consultorio.ubicacion.toLowerCase().includes(searchTerm.toLowerCase());
+      consultorio.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      consultorio.ciudad.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      consultorio.direccion.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesEspecialidades =
       selectedEspecialidades.length === 0 ||
-      selectedEspecialidades.some((esp) =>
-        consultorio.especialidades.includes(esp)
-      );
+      (consultorio.especialidades && selectedEspecialidades.some((esp) =>
+        consultorio.especialidades!.includes(esp)
+      ));
 
     const matchesZonas =
       selectedZonas.length === 0 ||
-      selectedZonas.some((zona) => consultorio.ubicacion.includes(zona));
+      selectedZonas.some((zona) =>
+        consultorio.ciudad.toLowerCase().includes(zona.toLowerCase()) ||
+        consultorio.direccion.toLowerCase().includes(zona.toLowerCase())
+      );
 
     const matchesPrice =
-      consultorio.precio >= priceRange[0] &&
-      consultorio.precio <= priceRange[1];
+      consultorio.precio_por_hora >= priceRange[0] &&
+      consultorio.precio_por_hora <= priceRange[1];
 
     return (
       matchesSearch && matchesEspecialidades && matchesZonas && matchesPrice
@@ -213,15 +297,15 @@ export default function ConsultoriosPage() {
   const sortedConsultorios = [...filteredConsultorios].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
-        return a.precio - b.precio;
+        return a.precio_por_hora - b.precio_por_hora;
       case "price-high":
-        return b.precio - a.precio;
+        return b.precio_por_hora - a.precio_por_hora;
       case "rating":
-        return b.calificacion - a.calificacion;
+        return b.calificacion_promedio - a.calificacion_promedio;
       case "reviews":
-        return b.reseñas - a.reseñas;
+        return b.total_calificaciones - a.total_calificaciones;
       default:
-        return 0;
+        return b.calificacion_promedio - a.calificacion_promedio;
     }
   });
 
@@ -406,22 +490,44 @@ export default function ConsultoriosPage() {
           </div>
 
           {/* Consultorios Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedConsultorios.map((consultorio) => (
+          {loading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="overflow-hidden animate-pulse">
+                  <div className="h-48 bg-muted"></div>
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-muted rounded mb-3"></div>
+                    <div className="h-4 bg-muted rounded mb-2"></div>
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="h-8 bg-muted rounded mb-4"></div>
+                    <div className="h-10 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : sortedConsultorios.length > 0 ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedConsultorios.map((consultorio) => (
               <Link
                 key={consultorio.id}
                 href={`/consultorios/${consultorio.id}`}
                 className="block"
               >
                 <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer hover:border-primary/50">
-                  {/* Image Placeholder */}
+                  {/* Image */}
                   <div className="h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center relative">
-                    <div className="text-center">
-                      <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
-                      <p className="text-primary font-medium">
-                        Consultorio {consultorio.id}
-                      </p>
-                    </div>
+                    {consultorio.imagen_principal ? (
+                      <img 
+                        src={consultorio.imagen_principal} 
+                        alt={consultorio.titulo}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
+                        <p className="text-primary font-medium">Consultorio</p>
+                      </div>
+                    )}
                     <div className="absolute top-3 right-3 flex space-x-2">
                       <Button
                         size="sm"
@@ -444,15 +550,15 @@ export default function ConsultoriosPage() {
                     {/* Header */}
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="text-xl font-bold text-foreground">
-                        {consultorio.nombre}
+                        {consultorio.titulo}
                       </h3>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span className="ml-1 text-sm text-muted-foreground">
-                          {consultorio.calificacion}
+                          {consultorio.calificacion_promedio > 0 ? consultorio.calificacion_promedio.toFixed(1) : '5.0'}
                         </span>
                         <span className="ml-1 text-xs text-muted-foreground">
-                          ({consultorio.reseñas})
+                          ({consultorio.total_calificaciones})
                         </span>
                       </div>
                     </div>
@@ -460,74 +566,78 @@ export default function ConsultoriosPage() {
                     {/* Location */}
                     <p className="text-muted-foreground mb-3 flex items-center">
                       <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                      {consultorio.ubicacion}
+                      {consultorio.ciudad}, {consultorio.estado}
                     </p>
 
                     {/* Price */}
                     <div className="mb-4">
                       <p className="text-2xl font-bold text-primary">
-                        {formatCurrency(consultorio.precio)}/hora
+                        ${consultorio.precio_por_hora}/hora
                       </p>
                     </div>
 
                     {/* Specialties */}
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-1">
-                        {consultorio.especialidades
-                          .slice(0, 2)
-                          .map((especialidad, index) => (
+                    {consultorio.especialidades && consultorio.especialidades.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {consultorio.especialidades
+                            .slice(0, 2)
+                            .map((especialidad, index) => (
+                              <Badge
+                                key={index}
+                                variant="secondary"
+                                className="bg-primary/10 text-primary hover:bg-primary/20"
+                              >
+                                {especialidad}
+                              </Badge>
+                            ))}
+                          {consultorio.especialidades.length > 2 && (
                             <Badge
-                              key={index}
-                              variant="secondary"
-                              className="bg-primary/10 text-primary hover:bg-primary/20"
+                              variant="outline"
+                              className="text-muted-foreground"
                             >
-                              {especialidad}
+                              +{consultorio.especialidades.length - 2}
                             </Badge>
-                          ))}
-                        {consultorio.especialidades.length > 2 && (
-                          <Badge
-                            variant="outline"
-                            className="text-muted-foreground"
-                          >
-                            +{consultorio.especialidades.length - 2}
-                          </Badge>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Services */}
                     <div className="mb-4">
                       <div className="flex flex-wrap gap-2">
-                        {consultorio.servicios.includes("WiFi") && (
+                        {consultorio.wifi && (
                           <Wifi className="h-4 w-4 text-muted-foreground" />
                         )}
-                        {consultorio.servicios.includes("Estacionamiento") && (
+                        {consultorio.estacionamiento && (
                           <Car className="h-4 w-4 text-muted-foreground" />
                         )}
-                        {consultorio.servicios.includes("Accesibilidad") && (
+                        {consultorio.servicios && consultorio.servicios.includes("Accesibilidad") && (
                           <Accessibility className="h-4 w-4 text-muted-foreground" />
                         )}
                       </div>
                     </div>
 
                     {/* Schedule */}
-                    <div className="mb-4 flex items-center text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {consultorio.horarios}
-                    </div>
+                    {(consultorio.horario_apertura && consultorio.horario_cierre) && (
+                      <div className="mb-4 flex items-center text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {consultorio.horario_apertura} - {consultorio.horario_cierre}
+                      </div>
+                    )}
 
                     {/* Owner */}
-                    <div className="mb-4 flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 text-muted-foreground mr-1" />
-                        <span className="text-sm text-muted-foreground">
-                          {consultorio.propietario}
-                        </span>
-                      </div>
-                      {consultorio.verificado && (
+                    {consultorio.propietario && (
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 text-muted-foreground mr-1" />
+                          <span className="text-sm text-muted-foreground">
+                            {consultorio.propietario.full_name}
+                          </span>
+                        </div>
                         <Shield className="h-4 w-4 text-primary" />
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Action Button */}
                     <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium">
@@ -537,18 +647,71 @@ export default function ConsultoriosPage() {
                 </Card>
               </Link>
             ))}
-          </div>
+            </div>
+          ) : (
+            // CTA cuando no hay consultorios
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <div className="w-24 h-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Plus className="h-12 w-12 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground mb-4">¡Sé el primero en WellPoint!</h3>
+                <p className="text-muted-foreground mb-6">
+                  Aún no hay consultorios publicados en nuestra plataforma. ¿Tienes un espacio médico? 
+                  ¡Únete a nosotros y ayuda a crear la primera comunidad de consultorios profesionales!
+                </p>
+                <div className="space-y-3">
+                  {user?.role === 'owner' ? (
+                    <Link href="/consultorios/crear">
+                      <Button size="lg" className="w-full">
+                        <Plus className="h-5 w-5 mr-2" />
+                        Publicar mi consultorio
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/registro">
+                      <Button size="lg" className="w-full">
+                        Registrarme como propietario
+                      </Button>
+                    </Link>
+                  )}
+                  <Link href="/como-funciona">
+                    <Button variant="outline" size="lg" className="w-full">
+                      Conocer cómo funciona
+                    </Button>
+                  </Link>
+                  <Link href="/contacto">
+                    <Button variant="ghost" size="lg" className="w-full">
+                      Contactar soporte
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* No Results */}
-          {sortedConsultorios.length === 0 && (
+          {/* No Results cuando hay filtros aplicados */}
+          {!loading && consultorios.length > 0 && sortedConsultorios.length === 0 && (
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">
                 No se encontraron consultorios
               </h3>
-              <p className="text-muted-foreground">
-                Intenta ajustar tus filtros de búsqueda
+              <p className="text-muted-foreground mb-4">
+                Intenta ajustar tus filtros de búsqueda para encontrar más opciones
               </p>
+              <Button 
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedEspecialidades([]);
+                  setSelectedZonas([]);
+                  setPriceRange([0, 2000]);
+                  setSortBy("relevance");
+                }}
+                variant="outline"
+              >
+                Limpiar filtros
+              </Button>
             </div>
           )}
         </div>
