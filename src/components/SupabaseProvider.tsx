@@ -18,29 +18,50 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Obtener sesión inicial
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        // Sincronizar con el store de auth
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
+      try {
+        setLoading(true)
+        const { data: { session }, error } = await supabase.auth.getSession()
         
-        setAuthUser({
-          id: session.user.id,
-          email: session.user.email!,
-          nombre: profile?.full_name?.split(' ')[0] || '',
-          apellidos: profile?.full_name?.split(' ').slice(1).join(' ') || '',
-          role: profile?.role || 'professional',
-          avatar: profile?.avatar_url || null,
-        })
+        if (error) {
+          console.error('Error getting session:', error)
+          setLoading(false)
+          return
+        }
+        
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          // Sincronizar con el store de auth
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', profileError)
+          }
+          
+          // Extraer nombre y apellidos de user_metadata o usar valores por defecto
+          const fullName = session.user.user_metadata?.full_name || profile?.full_name || ''
+          const nameParts = fullName.split(' ')
+          
+          setAuthUser({
+            id: session.user.id,
+            email: session.user.email!,
+            nombre: session.user.user_metadata?.nombre || nameParts[0] || '',
+            apellidos: session.user.user_metadata?.apellidos || nameParts.slice(1).join(' ') || '',
+            role: (session.user.user_metadata?.role || profile?.role || 'professional') as 'professional' | 'owner' | 'admin',
+            avatar: session.user.user_metadata?.avatar_url || profile?.avatar_url || null,
+          })
+        }
+        
+        setLoading(false)
+      } catch (error) {
+        console.error('Error in getSession:', error)
+        setLoading(false)
       }
-      
-      setLoading(false)
     }
 
     getSession()
@@ -48,40 +69,61 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     // Escuchar cambios en la autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Crear o actualizar perfil
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
+        try {
+          console.log('Auth state changed:', event, session?.user?.email)
+          setSession(session)
+          setUser(session?.user ?? null)
           
-          if (!profile) {
-            // Crear perfil si no existe
-            await supabase.from('profiles').insert({
+          if (event === 'SIGNED_IN' && session?.user) {
+            // Crear o actualizar perfil
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single()
+            
+            if (profileError && profileError.code === 'PGRST116') {
+              // Perfil no existe, crear uno nuevo
+              const newProfile = {
+                id: session.user.id,
+                email: session.user.email,
+                full_name: session.user.user_metadata?.full_name || 
+                          `${session.user.user_metadata?.nombre || ''} ${session.user.user_metadata?.apellidos || ''}`.trim(),
+                role: session.user.user_metadata?.role || 'professional',
+                avatar_url: session.user.user_metadata?.avatar_url || null,
+              }
+              
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert(newProfile)
+              
+              if (insertError) {
+                console.error('Error creating profile:', insertError)
+              }
+            }
+            
+            // Extraer nombre y apellidos
+            const fullName = session.user.user_metadata?.full_name || profile?.full_name || ''
+            const nameParts = fullName.split(' ')
+            
+            setAuthUser({
               id: session.user.id,
-              email: session.user.email,
-              role: 'professional',
+              email: session.user.email!,
+              nombre: session.user.user_metadata?.nombre || nameParts[0] || '',
+              apellidos: session.user.user_metadata?.apellidos || nameParts.slice(1).join(' ') || '',
+              role: (session.user.user_metadata?.role || profile?.role || 'professional') as 'professional' | 'owner' | 'admin',
+              avatar: session.user.user_metadata?.avatar_url || profile?.avatar_url || null,
             })
+          } else if (event === 'SIGNED_OUT') {
+            clearAuth()
+            clearUser()
           }
           
-          setAuthUser({
-            id: session.user.id,
-            email: session.user.email!,
-            nombre: profile?.full_name?.split(' ')[0] || '',
-            apellidos: profile?.full_name?.split(' ').slice(1).join(' ') || '',
-            role: profile?.role || 'professional',
-            avatar: profile?.avatar_url || null,
-          })
-        } else if (event === 'SIGNED_OUT') {
-          clearAuth()
-          clearUser()
+          setLoading(false)
+        } catch (error) {
+          console.error('Error in auth state change:', error)
+          setLoading(false)
         }
-        
-        setLoading(false)
       }
     )
 

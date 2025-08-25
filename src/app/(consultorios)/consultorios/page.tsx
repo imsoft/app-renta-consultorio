@@ -1,7 +1,10 @@
 "use client";
-import { Card, CardContent } from "@/components/ui/card";
+
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
 
 import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Search,
   MapPin,
@@ -31,7 +34,7 @@ import {
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
 
-// Datos simulados de consultorios
+// Datos simulados de consultorios (como fallback)
 const consultorios = [
   {
     id: 1,

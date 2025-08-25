@@ -1,0 +1,13 @@
+# Archivos temporales de documentación
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/
+
+# Archivos de backup
+*.bak
+*~
