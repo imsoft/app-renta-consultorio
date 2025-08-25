@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
 import { useRouter } from "next/navigation";
 import { 
   Calendar, 
@@ -24,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthStore } from "@/stores/authStore";
-import { formatDate, formatCurrency, formatNumber, formatDateTime } from "@/lib/utils";
+import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
 
 // Tipos para las reservas
 interface Reserva {

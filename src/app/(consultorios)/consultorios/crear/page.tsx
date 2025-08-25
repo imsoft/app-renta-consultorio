@@ -1,6 +1,9 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,16 +11,9 @@ import * as z from "zod";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  MapPin,
   DollarSign,
   Clock,
   Building,
-  Wifi,
-  Car,
-  Accessibility,
-  Upload,
-  X,
-  Plus,
   CheckCircle,
   AlertCircle
 } from "lucide-react";
@@ -25,7 +21,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -35,14 +30,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuthStore } from "@/stores/authStore";
+import Image from "next/image";
 
 // Schema de validación para el formulario de consultorio
 const consultorioSchema = z.object({
@@ -160,7 +149,7 @@ const serviciosDisponibles = [
   { id: "calefaccion", nombre: "Calefacción", descripcion: "Sistema de calefacción" }
 ];
 
-export default function CrearConsultorioPage() {
+function CrearConsultorioPageContent() {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [error, setError] = useState("");
@@ -214,7 +203,14 @@ export default function CrearConsultorioPage() {
       // Simular envío de datos
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      console.log("Consultorio creado:", data);
+      // Incluir las imágenes en los datos
+      const consultorioData = {
+        ...data,
+        imagenes: uploadedImages,
+        totalImagenes: uploadedImages.length
+      };
+      
+      console.log("Consultorio creado:", consultorioData);
       setSuccess("¡Consultorio creado exitosamente! Será revisado por nuestro equipo.");
       
       // Redireccionar después de 2 segundos
@@ -222,7 +218,7 @@ export default function CrearConsultorioPage() {
         router.push("/dashboard");
       }, 2000);
     } catch (error) {
-      setError("Error al crear el consultorio. Intenta de nuevo.");
+      setError(`Error al crear el consultorio. Intenta de nuevo. ${error}`);
     }
   };
 
@@ -534,6 +530,69 @@ export default function CrearConsultorioPage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Carga de imágenes */}
+                  <div>
+                    <FormLabel>Imágenes del consultorio</FormLabel>
+                    <div className="space-y-4">
+                      {/* Área de carga */}
+                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <label
+                          htmlFor="image-upload"
+                          className="cursor-pointer flex flex-col items-center space-y-2"
+                        >
+                          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Haz clic para subir imágenes</p>
+                            <p className="text-xs text-muted-foreground">
+                              PNG, JPG hasta 6 imágenes
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      {/* Vista previa de imágenes */}
+                      {uploadedImages.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium mb-3">Imágenes cargadas ({uploadedImages.length}/6)</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {uploadedImages.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <Image
+                                  src={image}
+                                  alt={`Imagen ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg"
+                                  width={100}
+                                  height={100}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(index)}
+                                  className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -870,6 +929,29 @@ export default function CrearConsultorioPage() {
                     </div>
                   </div>
 
+                  {/* Vista previa de imágenes */}
+                  {uploadedImages.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="font-semibold">Imágenes del consultorio</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {uploadedImages.map((image, index) => (
+                          <div key={index} className="relative">
+                            <Image
+                              src={image}
+                              alt={`Imagen ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg"
+                              width={100}
+                              height={100}
+                            />
+                            <div className="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center text-xs">
+                              {index + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Términos */}
                   <FormField
                     control={form.control}
@@ -927,4 +1009,9 @@ export default function CrearConsultorioPage() {
 
     </div>
   );
+}
+
+// Wrapper dinámico para evitar problemas de prerender
+export default function CrearConsultorioPage() {
+  return <CrearConsultorioPageContent />;
 }

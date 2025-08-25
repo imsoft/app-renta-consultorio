@@ -4,6 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
 
+// Deshabilitar prerender globalmente para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

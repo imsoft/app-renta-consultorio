@@ -1,13 +1,14 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Plus,
   Search,
-  Filter,
   Edit,
   Eye,
   Trash2,
@@ -18,8 +19,6 @@ import {
   MapPin,
   Building,
   CheckCircle,
-  XCircle,
-  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthStore } from "@/stores/authStore";
-import { formatDate, formatCurrency, formatNumber, formatDateTime } from "@/lib/utils";
+import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
 
 // Datos simulados de consultorios del propietario
 const misConsultorios = [
@@ -121,7 +120,6 @@ export default function MisConsultoriosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [sortBy, setSortBy] = useState("nombre");
-  const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
 
   // Verificar si el usuario está autenticado y es propietario

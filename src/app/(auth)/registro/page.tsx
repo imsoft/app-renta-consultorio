@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -92,7 +95,7 @@ export default function RegistroPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header currentPage="/registro" />
+      <Header />
       
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center py-12 sm:px-6 lg:px-8">

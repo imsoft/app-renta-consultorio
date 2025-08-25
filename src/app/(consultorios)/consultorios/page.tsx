@@ -1,11 +1,10 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { useState } from "react";
 import {
   Search,
   MapPin,
-  Calendar,
   Star,
   Filter,
   SlidersHorizontal,
@@ -18,7 +17,6 @@ import {
   Car,
   Accessibility,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuthStore } from "@/stores/authStore";
-import { formatDate, formatCurrency, formatNumber, formatDateTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 // Datos simulados de consultorios
 const consultorios = [

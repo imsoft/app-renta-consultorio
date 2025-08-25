@@ -1,10 +1,8 @@
 "use client";
 
 import { Search, MapPin, Calendar, Star, Users, Shield, Clock } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";

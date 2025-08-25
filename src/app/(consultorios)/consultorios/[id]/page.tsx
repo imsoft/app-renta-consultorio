@@ -4,12 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { 
   MapPin, 
-  Calendar, 
   Star, 
   Heart,
   Share2,
   Clock,
-  Users,
   Shield,
   Wifi,
   Car,
@@ -21,7 +19,6 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
-  DollarSign,
   User,
   Building
 } from "lucide-react";
@@ -118,6 +115,8 @@ const consultorio = {
 export default function ConsultorioPage({ params }: { params: { id: string } }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+
+  console.log(params)
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 

@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { 
   Search, 
-  MapPin, 
   Calendar, 
   Star, 
   Users, 
@@ -21,7 +20,6 @@ import {
   Settings,
   BarChart3
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

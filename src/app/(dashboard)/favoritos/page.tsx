@@ -1,14 +1,16 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
+
 import { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/authStore";
-import { formatDate, formatCurrency, formatNumber, formatDateTime } from "@/lib/utils";
+import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -36,15 +38,11 @@ import {
   MapPin,
   Star,
   Calendar,
-  Clock,
   DollarSign,
-  Building,
-  Filter,
   MoreHorizontal,
   Eye,
   Trash2,
   Plus,
-  XCircle,
 } from "lucide-react";
 
 // Datos simulados de consultorios favoritos

@@ -2,6 +2,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useState } from "react";
+
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -136,7 +139,7 @@ function PerfilContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
 
   const profileData = getProfileData(user?.role || "professional");
 

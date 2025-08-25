@@ -1,6 +1,9 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,16 +11,9 @@ import * as z from "zod";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
-  MapPin,
   DollarSign,
   Clock,
   Building,
-  Wifi,
-  Car,
-  Accessibility,
-  Upload,
-  X,
-  Plus,
   CheckCircle,
   AlertCircle,
   Save
@@ -26,7 +22,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -36,13 +31,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuthStore } from "@/stores/authStore";
 
 // Schema de validación (mismo que crear consultorio)
@@ -310,7 +298,7 @@ export default function EditarConsultorioPage() {
         router.push("/mis-consultorios");
       }, 2000);
     } catch (error) {
-      setError("Error al actualizar el consultorio. Intenta de nuevo.");
+      setError(`Error al actualizar el consultorio. Intenta de nuevo. ${error}`);
     }
   };
 

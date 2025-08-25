@@ -14,7 +14,7 @@ import {
 import { User, LogOut, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-export default function Header({ currentPage = "/" }: { currentPage?: string }) {
+export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
 

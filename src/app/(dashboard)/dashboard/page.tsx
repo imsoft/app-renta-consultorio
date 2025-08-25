@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
 import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, 
@@ -11,14 +13,10 @@ import {
   TrendingUp, 
   Users, 
   Building2,
-  MapPin,
   Star,
   Eye,
-  LogOut,
-  Settings
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { formatDateTime } from "@/lib/utils";
 
 // Datos simulados para el dashboard
 const dashboardData = {
@@ -82,8 +80,7 @@ const dashboardData = {
 };
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, isLoading, logout } = useAuthStore();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { user, isAuthenticated, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (

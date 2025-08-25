@@ -1,6 +1,13 @@
-import Header from "@/components/Header";
+"use client";
+
+import dynamic from "next/dynamic";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
+
+// Importar Header dinámicamente para evitar problemas de prerender
+const Header = dynamic(() => import("@/components/Header"), {
+  ssr: false,
+});
 
 export default function ConsultoriosLayout({
   children,
