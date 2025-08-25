@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronUp, Search, HelpCircle, CreditCard, Building2, Users, Shield } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 interface FAQItem {
   id: string;
@@ -223,7 +224,7 @@ export default function FAQPage() {
                 Intenta con otros términos de búsqueda o contacta a nuestro equipo de soporte
               </p>
               <Button asChild>
-                <a href="/contacto">Contactar soporte</a>
+                <Link href="/contacto">Contactar soporte</Link>
               </Button>
             </CardContent>
           </Card>
@@ -299,10 +300,10 @@ export default function FAQPage() {
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild>
-                <a href="/centro-ayuda">Ir al centro de ayuda</a>
+                <Link href="/centro-ayuda">Ir al centro de ayuda</Link>
               </Button>
               <Button variant="outline" asChild>
-                <a href="/contacto">Contactar soporte</a>
+                <Link href="/contacto">Contactar soporte</Link>
               </Button>
             </div>
           </CardContent>

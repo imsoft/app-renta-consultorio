@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, HelpCircle, MessageCircle, Phone, Mail, BookOpen, Video, FileText } from "lucide-react";
+import Link from "next/link";
 
 export default function CentroAyudaPage() {
   return (
@@ -275,7 +276,7 @@ export default function CentroAyudaPage() {
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             ¿Tienes una sugerencia para mejorar el centro de ayuda? 
-            <a href="/contacto" className="text-primary hover:underline ml-1">Déjanos saber</a>
+            <Link href="/contacto" className="text-primary hover:underline ml-1">Déjanos saber</Link>
           </p>
         </div>
       </div>

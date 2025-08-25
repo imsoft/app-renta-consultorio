@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, CreditCard, Lock, CheckCircle, AlertCircle, DollarSign } from "lucide-react";
+import Link from "next/link";
 
 export default function PagosSegurosPage() {
   return (
@@ -223,7 +224,7 @@ export default function PagosSegurosPage() {
             Ver métodos de pago
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
-            ¿Tienes preguntas sobre pagos? <a href="/contacto" className="text-primary hover:underline">Contáctanos</a>
+            ¿Tienes preguntas sobre pagos? <Link href="/contacto" className="text-primary hover:underline">Contáctanos</Link>
           </p>
         </div>
       </div>

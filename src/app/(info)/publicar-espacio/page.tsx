@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, MapPin, DollarSign, Calendar, Shield, Users } from "lucide-react";
+import Link from "next/link";
 
 export default function PublicarEspacioPage() {
   return (
@@ -135,7 +136,7 @@ export default function PublicarEspacioPage() {
             Comenzar a publicar
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
-            ¿Tienes preguntas? <a href="/contacto" className="text-primary hover:underline">Contáctanos</a>
+            ¿Tienes preguntas? <Link href="/contacto" className="text-primary hover:underline">Contáctanos</Link>
           </p>
         </div>
       </div>

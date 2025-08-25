@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Bug, MessageCircle, CreditCard, Building2, Users, Shield, Send, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function ReportarProblemaPage() {
   const [formData, setFormData] = useState({
@@ -59,7 +60,7 @@ export default function ReportarProblemaPage() {
                     Reportar otro problema
                   </Button>
                   <Button variant="outline" asChild>
-                    <a href="/centro-ayuda">Ir al centro de ayuda</a>
+                    <Link href="/centro-ayuda">Ir al centro de ayuda</Link>
                   </Button>
                 </div>
               </div>
