@@ -33,9 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/authStore";
+import Image from "next/image";
 
 interface Consultorio {
   id: string;
@@ -517,10 +517,12 @@ export default function ConsultoriosPage() {
                   {/* Image */}
                   <div className="h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center relative">
                     {consultorio.imagen_principal ? (
-                      <img 
+                      <Image
                         src={consultorio.imagen_principal} 
                         alt={consultorio.titulo}
                         className="w-full h-full object-cover"
+                        width={500}
+                        height={500}
                       />
                     ) : (
                       <div className="text-center">

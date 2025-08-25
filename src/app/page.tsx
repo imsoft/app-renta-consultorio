@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/authStore";
+import Image from "next/image";
 
 interface Consultorio {
   id: string;
@@ -245,10 +246,12 @@ export default function Home() {
                   <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer hover:border-primary/50">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center">
                       {consultorio.imagen_principal ? (
-                        <img 
+                        <Image
                           src={consultorio.imagen_principal} 
                           alt={consultorio.titulo}
                           className="w-full h-full object-cover"
+                          width={500}
+                          height={500}
                         />
                       ) : (
                         <div className="text-center">
