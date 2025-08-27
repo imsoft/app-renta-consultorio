@@ -20,8 +20,9 @@ export default function DashboardLayout({
     <ThemeProvider
       attribute="class"
       defaultTheme="light"
-      enableSystem
+      enableSystem={false}
       disableTransitionOnChange
+      forcedTheme="light"
     >
       <div className="min-h-screen flex flex-col">
         <Header />

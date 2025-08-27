@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, MapPin, Calendar, Star, Users, Shield, Clock, Plus } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Calendar,
+  Star,
+  Users,
+  Shield,
+  Clock,
+  Plus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,8 +48,9 @@ export default function Home() {
   const fetchConsultorios = async () => {
     try {
       const { data, error } = await supabase
-        .from('consultorios')
-        .select(`
+        .from("consultorios")
+        .select(
+          `
           id,
           titulo,
           direccion,
@@ -52,20 +62,21 @@ export default function Home() {
           imagen_principal,
           activo,
           aprobado
-        `)
-        .eq('activo', true)
-        .eq('aprobado', true)
-        .order('calificacion_promedio', { ascending: false })
+        `
+        )
+        .eq("activo", true)
+        .eq("aprobado", true)
+        .order("calificacion_promedio", { ascending: false })
         .limit(3);
 
       if (error) {
-        console.error('Error fetching consultorios:', error);
+        console.error("Error fetching consultorios:", error);
         return;
       }
 
       setConsultorios(data || []);
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
@@ -90,15 +101,16 @@ export default function Home() {
                 />
               </div>
             </div>
-            
+
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
               Encuentra el consultorio perfecto para tu práctica médica
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
-              Conectamos profesionales de la salud con espacios médicos de calidad. 
-              Renta consultorios por hora, día o mes según tus necesidades.
+              Conectamos profesionales de la salud con espacios médicos de
+              calidad. Renta consultorios por hora, día o mes según tus
+              necesidades.
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
               <div className="flex flex-col sm:flex-row bg-background rounded-lg shadow-lg p-3 sm:p-2 border border-border gap-3 sm:gap-2">
@@ -157,15 +169,22 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Para Propietarios */}
             <div className="bg-accent/10 p-6 sm:p-8 rounded-xl border border-accent/20">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Para Propietarios</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
+                Para Propietarios
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="bg-primary text-primary-foreground p-2 rounded-lg mr-3 sm:mr-4 flex-shrink-0">
                     <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm sm:text-base">Gestión Segura</h4>
-                    <p className="text-muted-foreground text-sm sm:text-base">Verificamos a todos los profesionales antes de confirmar reservas</p>
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base">
+                      Gestión Segura
+                    </h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Verificamos a todos los profesionales antes de confirmar
+                      reservas
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -173,8 +192,12 @@ export default function Home() {
                     <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm sm:text-base">Flexibilidad Total</h4>
-                    <p className="text-muted-foreground text-sm sm:text-base">Define tus horarios y precios según tus necesidades</p>
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base">
+                      Flexibilidad Total
+                    </h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Define tus horarios y precios según tus necesidades
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -182,8 +205,13 @@ export default function Home() {
                     <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm sm:text-base">Más Ingresos</h4>
-                    <p className="text-muted-foreground text-sm sm:text-base">Maximiza el uso de tu espacio y genera ingresos adicionales</p>
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base">
+                      Más Ingresos
+                    </h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Maximiza el uso de tu espacio y genera ingresos
+                      adicionales
+                    </p>
                   </div>
                 </div>
               </div>
@@ -191,15 +219,22 @@ export default function Home() {
 
             {/* Para Profesionales */}
             <div className="bg-secondary/10 p-6 sm:p-8 rounded-xl border border-secondary/20">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Para Profesionales</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
+                Para Profesionales
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="bg-secondary text-secondary-foreground p-2 rounded-lg mr-3 sm:mr-4 flex-shrink-0">
                     <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm sm:text-base">Búsqueda Fácil</h4>
-                    <p className="text-muted-foreground text-sm sm:text-base">Encuentra consultorios por ubicación, especialidad y precio</p>
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base">
+                      Búsqueda Fácil
+                    </h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Encuentra consultorios por ubicación, especialidad y
+                      precio
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -207,8 +242,12 @@ export default function Home() {
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm sm:text-base">Reserva Inmediata</h4>
-                    <p className="text-muted-foreground text-sm sm:text-base">Reserva tu espacio en minutos, sin complicaciones</p>
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base">
+                      Reserva Inmediata
+                    </h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Reserva tu espacio en minutos, sin complicaciones
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -216,8 +255,12 @@ export default function Home() {
                     <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground text-sm sm:text-base">Calidad Garantizada</h4>
-                    <p className="text-muted-foreground text-sm sm:text-base">Todos nuestros espacios cumplen con estándares médicos</p>
+                    <h4 className="font-semibold text-foreground text-sm sm:text-base">
+                      Calidad Garantizada
+                    </h4>
+                    <p className="text-muted-foreground text-sm sm:text-base">
+                      Todos nuestros espacios cumplen con estándares médicos
+                    </p>
                   </div>
                 </div>
               </div>
@@ -255,12 +298,15 @@ export default function Home() {
           ) : consultorios.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {consultorios.map((consultorio) => (
-                <Link key={consultorio.id} href={`/consultorios/${consultorio.id}`}>
+                <Link
+                  key={consultorio.id}
+                  href={`/consultorios/${consultorio.id}`}
+                >
                   <Card className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer hover:border-primary/50">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center">
                       {consultorio.imagen_principal ? (
                         <Image
-                          src={consultorio.imagen_principal} 
+                          src={consultorio.imagen_principal}
                           alt={consultorio.titulo}
                           className="w-full h-full object-cover"
                           width={500}
@@ -269,17 +315,23 @@ export default function Home() {
                       ) : (
                         <div className="text-center">
                           <MapPin className="h-8 w-8 sm:h-12 sm:w-12 text-primary mx-auto mb-2" />
-                          <p className="text-primary font-medium text-sm sm:text-base">Consultorio</p>
+                          <p className="text-primary font-medium text-sm sm:text-base">
+                            Consultorio
+                          </p>
                         </div>
                       )}
                     </div>
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg sm:text-xl font-bold text-foreground">{consultorio.titulo}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-foreground">
+                          {consultorio.titulo}
+                        </h3>
                         <div className="flex items-center">
                           <Star className="h-4 w-4 text-yellow-400 fill-current" />
                           <span className="ml-1 text-sm text-muted-foreground">
-                            {consultorio.calificacion_promedio > 0 ? consultorio.calificacion_promedio.toFixed(1) : '5.0'}
+                            {consultorio.calificacion_promedio > 0
+                              ? consultorio.calificacion_promedio.toFixed(1)
+                              : "5.0"}
                           </span>
                         </div>
                       </div>
@@ -288,24 +340,36 @@ export default function Home() {
                         {consultorio.ciudad}, {consultorio.estado}
                       </p>
                       <div className="mb-3 sm:mb-4">
-                        <p className="text-xl sm:text-2xl font-bold text-primary">${consultorio.precio_por_hora}/hora</p>
+                        <p className="text-xl sm:text-2xl font-bold text-primary">
+                          ${consultorio.precio_por_hora}/hora
+                        </p>
                       </div>
-                      {consultorio.especialidades && consultorio.especialidades.length > 0 && (
-                        <div className="mb-4">
-                          <div className="flex flex-wrap gap-1">
-                            {consultorio.especialidades.slice(0, 3).map((especialidad, index) => (
-                              <Badge key={index} variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                                {especialidad}
-                              </Badge>
-                            ))}
-                            {consultorio.especialidades.length > 3 && (
-                              <Badge variant="secondary" className="bg-muted text-muted-foreground">
-                                +{consultorio.especialidades.length - 3}
-                              </Badge>
-                            )}
+                      {consultorio.especialidades &&
+                        consultorio.especialidades.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-1">
+                              {consultorio.especialidades
+                                .slice(0, 3)
+                                .map((especialidad, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="secondary"
+                                    className="bg-primary/10 text-primary hover:bg-primary/20"
+                                  >
+                                    {especialidad}
+                                  </Badge>
+                                ))}
+                              {consultorio.especialidades.length > 3 && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-muted text-muted-foreground"
+                                >
+                                  +{consultorio.especialidades.length - 3}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                       <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-sm sm:text-base">
                         Ver detalles
                       </Button>
@@ -321,12 +385,15 @@ export default function Home() {
                 <div className="w-24 h-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
                   <Plus className="h-12 w-12 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">¡Sé el primero!</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-4">
+                  ¡Sé el primero!
+                </h3>
                 <p className="text-muted-foreground mb-6">
-                  Aún no hay consultorios publicados. ¿Tienes un espacio médico? ¡Publica el primer consultorio en WellPoint!
+                  Aún no hay consultorios publicados. ¿Tienes un espacio médico?
+                  ¡Publica el primer consultorio en WellPoint!
                 </p>
                 <div className="space-y-4">
-                  {user?.role === 'owner' ? (
+                  {user?.role === "owner" ? (
                     <Link href="/consultorios/crear">
                       <Button size="lg" className="w-full">
                         <Plus className="h-5 w-5 mr-2" />
@@ -341,7 +408,7 @@ export default function Home() {
                     </Link>
                   )}
                   <Link href="/como-funciona">
-                    <Button variant="outline" size="lg" className="w-full">
+                    <Button variant="outline" size="lg" className="w-full mt-4">
                       Conocer cómo funciona
                     </Button>
                   </Link>
@@ -353,7 +420,10 @@ export default function Home() {
           {consultorios.length > 0 && (
             <div className="text-center mt-8 sm:mt-12">
               <Link href="/consultorios">
-                <Button variant="outline" className="px-6 sm:px-8 py-3 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-sm sm:text-base">
+                <Button
+                  variant="outline"
+                  className="px-6 sm:px-8 py-3 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-sm sm:text-base"
+                >
                   Ver todos los consultorios
                 </Button>
               </Link>
@@ -369,13 +439,20 @@ export default function Home() {
             ¿Listo para empezar?
           </h2>
           <p className="text-lg sm:text-xl text-primary-foreground/80 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
-            Únete a nuestra comunidad de profesionales de la salud y propietarios de consultorios
+            Únete a nuestra comunidad de profesionales de la salud y
+            propietarios de consultorios
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
-            <Button variant="secondary" className="px-6 sm:px-8 py-3 bg-background text-primary hover:bg-background/90 font-semibold text-sm sm:text-base">
+            <Button
+              variant="secondary"
+              className="px-6 sm:px-8 py-3 bg-background text-primary hover:bg-background/90 font-semibold text-sm sm:text-base"
+            >
               Soy Profesional de la Salud
             </Button>
-            <Button variant="outline" className="px-6 sm:px-8 py-3 border-2 border-background text-background hover:bg-background hover:text-primary font-semibold text-sm sm:text-base bg-background/10">
+            <Button
+              variant="outline"
+              className="px-6 sm:px-8 py-3 border-2 border-background text-background hover:bg-background hover:text-primary font-semibold text-sm sm:text-base bg-background/10"
+            >
               Tengo un Consultorio
             </Button>
           </div>
