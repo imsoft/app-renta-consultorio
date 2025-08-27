@@ -975,7 +975,7 @@ export default function EditarConsultorioPage() {
                     control={form.control}
                     name="terminos"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                      <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                         <FormControl>
                           <Checkbox
                             checked={field.value}

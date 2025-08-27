@@ -307,7 +307,7 @@ export default function RegistroPage() {
                   control={form.control}
                   name="aceptoTerminos"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                    <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                       <FormControl>
                         <Checkbox
                           checked={field.value}

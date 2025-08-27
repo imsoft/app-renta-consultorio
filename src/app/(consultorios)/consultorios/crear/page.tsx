@@ -641,7 +641,7 @@ function CrearConsultorioPageContent() {
                         control={form.control}
                         name="wifi"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -660,7 +660,7 @@ function CrearConsultorioPageContent() {
                         control={form.control}
                         name="estacionamiento"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -679,7 +679,7 @@ function CrearConsultorioPageContent() {
                         control={form.control}
                         name="aire_acondicionado"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -698,7 +698,7 @@ function CrearConsultorioPageContent() {
                         control={form.control}
                         name="permite_mascotas"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                          <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -877,7 +877,7 @@ function CrearConsultorioPageContent() {
                     control={form.control}
                     name="terminos"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                      <FormItem className="flex flex-row items-start space-x-1 space-y-0">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
