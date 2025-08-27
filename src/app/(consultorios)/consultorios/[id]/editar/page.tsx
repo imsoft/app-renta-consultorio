@@ -850,7 +850,7 @@ export default function EditarConsultorioPage() {
                         control={form.control}
                         name="politicas.cancelacionGratuita"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -867,7 +867,7 @@ export default function EditarConsultorioPage() {
                         control={form.control}
                         name="politicas.seguroIncluido"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
@@ -918,7 +918,7 @@ export default function EditarConsultorioPage() {
                       control={form.control}
                       name="contacto.whatsapp"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                        <FormItem className="flex flex-row items-start space-x-2 space-y-0 mt-4">
                           <FormControl>
                             <Checkbox
                               checked={field.value}
@@ -975,7 +975,7 @@ export default function EditarConsultorioPage() {
                     control={form.control}
                     name="terminos"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
