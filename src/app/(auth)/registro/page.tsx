@@ -315,7 +315,7 @@ export default function RegistroPage() {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm text-muted-foreground cursor-pointer">
+                        <FormLabel className="text-sm text-muted-foreground cursor-pointer whitespace-nowrap">
                           Acepto los{" "}
                           <Link
                             href="/terminos-servicio"

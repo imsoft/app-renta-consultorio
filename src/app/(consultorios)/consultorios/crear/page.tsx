@@ -884,7 +884,7 @@ function CrearConsultorioPageContent() {
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <FormLabel className="text-sm leading-6">
+                        <FormLabel className="text-sm leading-6 whitespace-nowrap">
                           Acepto los{" "}
                           <Link href="/terminos-servicio" className="text-primary hover:text-primary/80">
                             términos y condiciones

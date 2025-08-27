@@ -112,7 +112,7 @@ export default function Home() {
             </p>
 
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
+            <div className="max-w-4xl mx-auto mb-6 sm:mb-8 px-4">
               <div className="flex flex-col sm:flex-row bg-background rounded-lg shadow-lg p-3 sm:p-2 border border-border gap-3 sm:gap-2">
                 <div className="flex-1 flex items-center px-3 sm:px-4 py-2 sm:py-0">
                   <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mr-3 sm:mr-2 flex-shrink-0" />
