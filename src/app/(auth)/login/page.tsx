@@ -271,8 +271,13 @@ export default function LoginPage() {
               disabled={loading}
               size="lg"
             >
-              <div className="w-5 h-5 mr-2 bg-white rounded flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-xs">G</span>
+              <div className="relative w-5 h-5 mr-2">
+                <Image
+                  src="/google-logo.svg"
+                  alt="Google Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
               {loading ? "Conectando..." : "Continuar con Google"}
             </Button>

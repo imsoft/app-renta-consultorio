@@ -22,14 +22,6 @@ export default function Footer() {
               Conectando profesionales de la salud con espacios médicos de calidad. 
               La plataforma más confiable para rentar y encontrar consultorios médicos.
             </p>
-            <div className="flex space-x-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <span className="text-primary font-semibold text-sm sm:text-base">M</span>
-              </div>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
-                <span className="text-secondary font-semibold text-sm sm:text-base">R</span>
-              </div>
-            </div>
           </div>
           <div>
             <h4 className="font-semibold text-foreground mb-4 text-sm sm:text-base">Servicios</h4>
