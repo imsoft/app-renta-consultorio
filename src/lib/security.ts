@@ -111,7 +111,7 @@ export const sanitizeHtml = (html: string): string => {
   const allowedTags = ['b', 'i', 'em', 'strong', 'br'];
   
   // Remover todos los tags excepto los permitidos
-  let sanitized = html.replace(/<[^>]*>/g, (match) => {
+  const sanitized = html.replace(/<[^>]*>/g, (match) => {
     const tagName = match.replace(/[<>/]/g, '').split(' ')[0].toLowerCase();
     return allowedTags.includes(tagName) ? match : '';
   });
@@ -156,13 +156,14 @@ export const validatePhone = (phone: string): boolean => {
 // LOGGING SEGURO
 // ============================================================================
 
-export const secureLog = (message: string, error?: any): void => {
+export const secureLog = (message: string, error?: unknown): void => {
   console.log(`[${new Date().toISOString()}] ${message}`);
   
   if (error) {
     // Solo loggear información no sensible
     console.error('Error type:', error.constructor.name);
-    console.error('Error message:', error.message);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    console.error('Error message:', (error as any).message);
     
     // En desarrollo, loggear más detalles
     if (process.env.NODE_ENV === 'development') {
@@ -230,7 +231,7 @@ export const hashString = async (text: string): Promise<string> => {
 // VALIDACIÓN DE FORMULARIOS
 // ============================================================================
 
-export const validateConsultorioData = (data: any) => {
+export const validateConsultorioData = (data: Record<string, unknown>) => {
   const schema = z.object({
     titulo: z.string().min(3).max(100),
     descripcion: z.string().min(20).max(1000),
@@ -244,7 +245,7 @@ export const validateConsultorioData = (data: any) => {
   return schema.safeParse(data);
 };
 
-export const validateReservaData = (data: any) => {
+export const validateReservaData = (data: Record<string, unknown>) => {
   const schema = z.object({
     consultorio_id: uuidSchema,
     fecha_inicio: z.string().refine(validateDate, 'Fecha inválida'),

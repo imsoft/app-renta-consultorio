@@ -12,17 +12,14 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
-  Settings,
-  BarChart3,
   Clock,
-  Users,
-  Globe,
   Lock,
   Unlock
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { supabase } from "@/lib/supabase";
-import { securityMonitor, waf } from "@/lib/security-monitoring";
+import { securityMonitor } from "@/lib/security-monitoring";
+import { waf } from "@/middleware/waf";
 
 interface SecurityStats {
   total_events: number;
@@ -42,7 +39,7 @@ interface SecurityEvent {
   user_id?: string;
   ip_address?: string;
   user_agent?: string;
-  details: any;
+  details: Record<string, unknown>;
   resolved: boolean;
 }
 
@@ -52,7 +49,7 @@ interface SecurityAlert {
   rule_name: string;
   severity: string;
   timestamp: string;
-  events: any[];
+  events: Record<string, unknown>[];
   resolved: boolean;
 }
 

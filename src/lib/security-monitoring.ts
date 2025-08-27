@@ -12,7 +12,7 @@ interface SecurityEvent {
   userId?: string;
   ipAddress?: string;
   userAgent?: string;
-  details: any;
+  details: Record<string, unknown>;
   resolved: boolean;
 }
 
@@ -31,6 +31,7 @@ interface AlertRule {
 // ============================================================================
 
 class SecurityMonitor {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private supabase: any;
   private alertRules: AlertRule[] = [];
   private eventBuffer: SecurityEvent[] = [];
@@ -103,7 +104,7 @@ class SecurityMonitor {
   // REGISTRO DE EVENTOS
   // ============================================================================
 
-  async logEvent(event: Omit<SecurityEvent, 'id' | 'timestamp' | 'resolved'>) {
+  async logEvent(event: Omit<SecurityEvent, 'id' | 'timestamp' | 'resolved'>): Promise<SecurityEvent> {
     const securityEvent: SecurityEvent = {
       ...event,
       id: crypto.randomUUID(),
@@ -192,6 +193,7 @@ class SecurityMonitor {
   // NOTIFICACIONES
   // ============================================================================
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async sendNotification(alert: any) {
     // Aquí puedes integrar con servicios como:
     // - Slack
@@ -323,7 +325,7 @@ class SecurityMonitor {
     }
   }
 
-  async getActiveAlerts(): Promise<any[]> {
+  async getActiveAlerts(): Promise<Record<string, unknown>[]> {
     try {
       const { data, error } = await this.supabase
         .from('security_alerts')

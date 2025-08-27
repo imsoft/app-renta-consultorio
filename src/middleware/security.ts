@@ -13,7 +13,8 @@ const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutos
 const RATE_LIMIT_MAX_REQUESTS = 100; // máximo 100 requests por ventana
 
 export function rateLimitMiddleware(request: NextRequest): NextResponse | null {
-  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ip = (request as any).ip || request.headers.get('x-forwarded-for') || 'unknown';
   const now = Date.now();
   
   // Obtener o crear registro para este IP
@@ -173,7 +174,7 @@ export function validatePhone(phone: string): boolean {
 // LOGGING SEGURO
 // ============================================================================
 
-export function logSecurityEvent(event: string, details: any = {}): void {
+export function logSecurityEvent(event: string, details: Record<string, unknown> = {}): void {
   const logEntry = {
     timestamp: new Date().toISOString(),
     event,

@@ -374,7 +374,8 @@ class WebApplicationFirewall {
   // ============================================================================
 
   private getClientIP(request: NextRequest): string {
-    return request.ip || 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (request as any).ip || 
            request.headers.get('x-forwarded-for') || 
            request.headers.get('x-real-ip') || 
            'unknown';
@@ -413,6 +414,7 @@ class WebApplicationFirewall {
     return { allowed: true, reason: 'Rate limit check passed' };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleRuleViolation(rule: WAFRule, context: any) {
     if (this.config.logMode) {
       await logSecurityEvent({
@@ -451,14 +453,15 @@ class WebApplicationFirewall {
     }
   }
 
-  removeFromWhitelist(ip: string): void {
-    this.config.whitelist = this.config.whitelist.filter(ip => ip !== ip);
+  removeFromWhitelist(ipAddress: string): void {
+    this.config.whitelist = this.config.whitelist.filter(ip => ip !== ipAddress);
   }
 
-  removeFromBlacklist(ip: string): void {
-    this.config.blacklist = this.config.blacklist.filter(ip => ip !== ip);
+  removeFromBlacklist(ipAddress: string): void {
+    this.config.blacklist = this.config.blacklist.filter(ip => ip !== ipAddress);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getStats(): WAFStats {
     return {
       enabled: this.config.enabled,
@@ -487,7 +490,7 @@ interface WAFStats {
   enabledRules: number;
   whitelistCount: number;
   blacklistCount: number;
-  requestCounts: Record<string, any>;
+  requestCounts: Record<string, unknown>;
 }
 
 // ============================================================================
