@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
+import { Analytics } from "@vercel/analytics/next"
 
 // Deshabilitar prerender globalmente para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,7 @@ export default function RootLayout({
             {children}
           </SupabaseProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
