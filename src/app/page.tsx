@@ -78,6 +78,19 @@ export default function Home() {
       <section className="bg-gradient-to-r from-accent/20 to-primary/10 py-12 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+            {/* Logo en Hero */}
+            <div className="flex justify-center mb-6">
+              <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                <Image
+                  src="/logo.svg"
+                  alt="WellPoint Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+            
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
               Encuentra el consultorio perfecto para tu práctica médica
             </h1>

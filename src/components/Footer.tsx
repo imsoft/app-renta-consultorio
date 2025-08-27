@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -6,7 +7,17 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div className="sm:col-span-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-primary mb-4">WellPoint</h3>
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="relative w-12 h-12">
+                <Image
+                  src="/logo.svg"
+                  alt="WellPoint Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-primary">WellPoint</h3>
+            </div>
             <p className="text-muted-foreground mb-4 max-w-md text-sm sm:text-base">
               Conectando profesionales de la salud con espacios médicos de calidad. 
               La plataforma más confiable para rentar y encontrar consultorios médicos.

@@ -85,22 +85,34 @@ interface Calificacion {
   };
 }
 
-export default function ConsultorioDetailPage({ params }: { params: { id: string } }) {
+export default function ConsultorioDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [consultorio, setConsultorio] = useState<Consultorio | null>(null);
   const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [consultorioId, setConsultorioId] = useState<string>("");
 
   const { user } = useAuthStore();
   const router = useRouter();
 
+  // Obtener el ID del consultorio
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setConsultorioId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
   // Cargar datos del consultorio
   useEffect(() => {
+    if (!consultorioId) return;
+    
     const loadConsultorioData = async () => {
       try {
         // Validar UUID del consultorio
-        if (!validateUUID(params.id)) {
+        if (!validateUUID(consultorioId)) {
           console.error('ID de consultorio inválido');
           router.push('/consultorios');
           return;
@@ -119,7 +131,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
               telefono
             )
           `)
-          .eq('id', params.id)
+          .eq('id', consultorioId)
           .eq('activo', true)
           .single();
 
@@ -143,7 +155,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
               avatar_url
             )
           `)
-          .eq('consultorio_id', params.id)
+          .eq('consultorio_id', consultorioId)
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -154,7 +166,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
           const { data: favoritoData } = await supabase
             .from('favoritos')
             .select('id')
-            .eq('consultorio_id', params.id)
+            .eq('consultorio_id', consultorioId)
             .eq('usuario_id', user.id)
             .single();
 
@@ -165,7 +177,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
         await supabase
           .from('consultorios')
           .update({ vistas: (consultorioData.vistas || 0) + 1 })
-          .eq('id', params.id);
+          .eq('id', consultorioId);
 
       } catch (error) {
         console.error('Error general:', error);
@@ -175,7 +187,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
     };
 
     loadConsultorioData();
-  }, [params.id, user]);
+  }, [consultorioId, user]);
 
   // Manejar favoritos
   const toggleFavorite = async () => {

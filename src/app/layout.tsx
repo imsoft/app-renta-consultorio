@@ -21,6 +21,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "WellPoint - Alquiler de Consultorios Médicos",
   description: "Conectamos profesionales de la salud con espacios médicos de calidad. La plataforma más confiable para rentar y encontrar consultorios médicos.",
+  icons: {
+    icon: [
+      {
+        url: "/logo.svg",
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

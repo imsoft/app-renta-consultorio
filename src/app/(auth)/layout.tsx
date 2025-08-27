@@ -3,10 +3,10 @@
 import dynamicImport from "next/dynamic";
 import { ThemeProvider } from "@/components/theme-provider";
 
-// Forzar renderizado dinámico para evitar problemas con Supabase
+// Forzar renderizado dinamico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
 
-// Importar Header dinámicamente para evitar problemas de prerender
+// Importar Header dinamicamente para evitar problemas de prerender
 const Header = dynamicImport(() => import("@/components/Header"), {
   ssr: false,
 });
