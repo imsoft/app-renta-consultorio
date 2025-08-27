@@ -662,7 +662,7 @@ export default function ConsultoriosPage() {
                   Aún no hay consultorios publicados en nuestra plataforma. ¿Tienes un espacio médico? 
                   ¡Únete a nosotros y ayuda a crear la primera comunidad de consultorios profesionales!
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {user?.role === 'owner' ? (
                     <Link href="/consultorios/crear">
                       <Button size="lg" className="w-full">

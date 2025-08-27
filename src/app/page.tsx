@@ -325,7 +325,7 @@ export default function Home() {
                 <p className="text-muted-foreground mb-6">
                   Aún no hay consultorios publicados. ¿Tienes un espacio médico? ¡Publica el primer consultorio en WellPoint!
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {user?.role === 'owner' ? (
                     <Link href="/consultorios/crear">
                       <Button size="lg" className="w-full">
