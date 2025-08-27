@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe, calculateApplicationFee, formatAmountForStripe } from '@/lib/stripe'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { securityMiddleware, logSecurityEvent } from '@/middleware/security'
 
 export async function POST(request: NextRequest) {
+  // Aplicar middleware de seguridad
+  const securityResult = securityMiddleware(request);
+  if (securityResult) return securityResult;
+  
   try {
+    logSecurityEvent('payment_intent_creation_started', { method: 'POST' });
     const cookieStore = await cookies()
     const supabaseClient = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

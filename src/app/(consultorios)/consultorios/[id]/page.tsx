@@ -33,6 +33,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/authStore";
+import { validateUUID, secureLog, validateImageUrl } from "@/lib/security";
 
 interface Consultorio {
   id: string;
@@ -98,6 +99,13 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
   useEffect(() => {
     const loadConsultorioData = async () => {
       try {
+        // Validar UUID del consultorio
+        if (!validateUUID(params.id)) {
+          console.error('ID de consultorio inválido');
+          router.push('/consultorios');
+          return;
+        }
+
         // Cargar datos del consultorio
         const { data: consultorioData, error: consultorioError } = await supabase
           .from('consultorios')
@@ -116,7 +124,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
           .single();
 
         if (consultorioError) {
-          console.error('Error al cargar consultorio:', consultorioError);
+          secureLog('Error al cargar consultorio', consultorioError);
           return;
         }
 
@@ -288,7 +296,7 @@ export default function ConsultorioDetailPage({ params }: { params: { id: string
             <Card>
               <CardContent className="p-0">
                 <div className="relative h-96 bg-gradient-to-br from-primary/10 to-accent/20">
-                  {currentImages.length > 0 && currentImages[currentImageIndex] ? (
+                  {currentImages.length > 0 && currentImages[currentImageIndex] && validateImageUrl(currentImages[currentImageIndex]) ? (
                     <Image
                       src={currentImages[currentImageIndex]}
                       alt={consultorio.titulo}
