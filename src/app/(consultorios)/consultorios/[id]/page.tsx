@@ -1,7 +1,12 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import HourlyBookingSelector from "@/components/HourlyBookingSelector";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
   MapPin, 
   Star, 
@@ -11,7 +16,7 @@ import {
   Shield,
   Wifi,
   Car,
-  Accessibility,
+
   Phone,
   Mail,
   ArrowLeft,
@@ -20,243 +25,346 @@ import {
   ChevronRight,
   CalendarDays,
   User,
-  Building
+  Building,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/stores/authStore";
 
-// Datos simulados del consultorio (en un caso real esto vendría de una API)
-const consultorio = {
-  id: 1,
-  nombre: "Consultorio Médico Central",
-  ubicacion: "Centro Histórico, CDMX",
-  direccion: "Av. Juárez 123, Centro Histórico, Ciudad de México, CDMX 06000",
-  precio: 800,
-  calificacion: 4.8,
-  reseñas: 124,
-  especialidades: ["Medicina General", "Cardiología", "Dermatología"],
-  imagenes: [
-    "/api/placeholder/800/600",
-    "/api/placeholder/800/600",
-    "/api/placeholder/800/600",
-    "/api/placeholder/800/600"
-  ],
-  disponible: true,
-  horarios: {
-    lunes: "8:00 - 20:00",
-    martes: "8:00 - 20:00",
-    miercoles: "8:00 - 20:00",
-    jueves: "8:00 - 20:00",
-    viernes: "8:00 - 20:00",
-    sabado: "9:00 - 15:00",
-    domingo: "Cerrado"
-  },
-  equipamiento: [
-    "Equipo de rayos X",
-    "Electrocardiógrafo", 
-    "Sala de espera",
-    "Consultorio privado",
-    "Baño privado",
-    "Sistema de aire acondicionado",
-    "Iluminación profesional"
-  ],
-  servicios: [
-    { nombre: "WiFi", icono: Wifi, descripcion: "Internet de alta velocidad" },
-    { nombre: "Estacionamiento", icono: Car, descripcion: "Estacionamiento gratuito" },
-    { nombre: "Accesibilidad", icono: Accessibility, descripcion: "Acceso para sillas de ruedas" }
-  ],
+interface Consultorio {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  direccion: string;
+  ciudad: string;
+  estado: string;
+  codigo_postal: string;
+  precio_por_hora: number;
+  precio_por_dia?: number;
+  precio_por_mes?: number;
+  metros_cuadrados?: number;
+  numero_consultorios: number;
+  equipamiento: string[];
+  servicios: string[];
+  especialidades: string[];
+  horario_apertura: string;
+  horario_cierre: string;
+  dias_disponibles: string[];
+  activo: boolean;
+  permite_mascotas: boolean;
+  estacionamiento: boolean;
+  wifi: boolean;
+  aire_acondicionado: boolean;
+  imagenes: string[];
+  imagen_principal?: string;
+  calificacion_promedio: number;
+  total_calificaciones: number;
+  total_reservas: number;
+  vistas: number;
   propietario: {
-    nombre: "Carlos Mendoza",
-    tipo: "Propietario particular",
-    verificado: true,
-    telefono: "+52 55 1234 5678",
-            email: "carlos.mendoza@wellpoint.com",
-    experiencia: "Propietario desde 2020",
-    calificacion: 4.9
-  },
-  descripcion: "Espacio médico completamente equipado ubicado en el corazón del Centro Histórico. Este consultorio está disponible para renta por profesionales de la salud que buscan un espacio profesional y accesible. El espacio cuenta con equipamiento moderno y está diseñado para brindar la mejor experiencia tanto para el profesional como para los pacientes.",
-  politicas: [
-    "Reserva mínima de 2 horas",
-    "Cancelación gratuita hasta 24 horas antes",
-    "Pago seguro a través de la plataforma",
-    "Seguro de responsabilidad civil incluido"
-  ],
-  reseñasDetalladas: [
-    {
-      id: 1,
-      usuario: "Dr. Laura Martínez",
-      especialidad: "Dermatóloga",
-      calificacion: 5,
-      fecha: "2024-01-15",
-      comentario: "Excelente espacio, muy bien equipado y ubicado. El propietario es muy profesional y el consultorio es perfecto para mi práctica."
-    },
-    {
-      id: 2,
-      usuario: "Dr. Miguel Torres",
-      especialidad: "Cardiólogo",
-      calificacion: 4,
-      fecha: "2024-01-10",
-      comentario: "Buen espacio y equipamiento. La ubicación es conveniente y el precio es justo. Recomendado."
-    },
-    {
-      id: 3,
-      usuario: "Dra. Patricia Ruiz",
-      especialidad: "Médico General",
-      calificacion: 5,
-      fecha: "2024-01-05",
-      comentario: "Consultorio impecable, muy limpio y profesional. El WiFi funciona perfectamente y el estacionamiento es un plus."
-    }
-  ]
-};
+    id: string;
+    full_name: string;
+    email: string;
+    avatar_url?: string;
+    telefono?: string;
+  };
+}
 
-export default function ConsultorioPage({ params }: { params: { id: string } }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+interface Calificacion {
+  id: string;
+  puntuacion: number;
+  comentario: string;
+  created_at: string;
+  usuario: {
+    full_name: string;
+    avatar_url?: string;
+  };
+}
+
+export default function ConsultorioDetailPage({ params }: { params: { id: string } }) {
+  const [consultorio, setConsultorio] = useState<Consultorio | null>(null);
+  const [calificaciones, setCalificaciones] = useState<Calificacion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  console.log(params)
+  const { user } = useAuthStore();
+  const router = useRouter();
 
+  // Cargar datos del consultorio
+  useEffect(() => {
+    const loadConsultorioData = async () => {
+      try {
+        // Cargar datos del consultorio
+        const { data: consultorioData, error: consultorioError } = await supabase
+          .from('consultorios')
+          .select(`
+            *,
+            propietario:propietario_id (
+              id,
+              full_name,
+              email,
+              avatar_url,
+              telefono
+            )
+          `)
+          .eq('id', params.id)
+          .eq('activo', true)
+          .single();
+
+        if (consultorioError) {
+          console.error('Error al cargar consultorio:', consultorioError);
+          return;
+        }
+
+        setConsultorio(consultorioData);
+
+        // Cargar calificaciones
+        const { data: calificacionesData } = await supabase
+          .from('calificaciones')
+          .select(`
+            id,
+            puntuacion,
+            comentario,
+            created_at,
+            usuario:usuario_id!inner (
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('consultorio_id', params.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        setCalificaciones((calificacionesData || []) as unknown as Calificacion[]);
+
+        // Verificar si está en favoritos (si el usuario está logueado)
+        if (user) {
+          const { data: favoritoData } = await supabase
+            .from('favoritos')
+            .select('id')
+            .eq('consultorio_id', params.id)
+            .eq('usuario_id', user.id)
+            .single();
+
+          setIsFavorite(!!favoritoData);
+        }
+
+        // Incrementar contador de vistas
+        await supabase
+          .from('consultorios')
+          .update({ vistas: (consultorioData.vistas || 0) + 1 })
+          .eq('id', params.id);
+
+      } catch (error) {
+        console.error('Error general:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadConsultorioData();
+  }, [params.id, user]);
+
+  // Manejar favoritos
+  const toggleFavorite = async () => {
+    if (!user || !consultorio) return;
+
+    try {
+      if (isFavorite) {
+        await supabase
+          .from('favoritos')
+          .delete()
+          .eq('consultorio_id', consultorio.id)
+          .eq('usuario_id', user.id);
+      } else {
+        await supabase
+          .from('favoritos')
+          .insert({
+            consultorio_id: consultorio.id,
+            usuario_id: user.id
+          });
+      }
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error('Error al manejar favorito:', error);
+    }
+  };
+
+  // Manejar confirmación de reserva
+  const handleBookingConfirm = (fecha: Date, hora: string, total: number) => {
+    // Redirigir a la página de pago o mostrar confirmación
+    router.push(`/dashboard/reservas?confirmacion=exitosa&fecha=${fecha.toISOString()}&hora=${hora}&total=${total}`);
+  };
+
+  // Navegación de imágenes
   const nextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === consultorio.imagenes.length - 1 ? 0 : prev + 1
-    );
+    if (consultorio?.imagenes) {
+      setCurrentImageIndex((prev) => 
+        prev === consultorio.imagenes.length - 1 ? 0 : prev + 1
+      );
+    }
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? consultorio.imagenes.length - 1 : prev - 1
-    );
+    if (consultorio?.imagenes) {
+      setCurrentImageIndex((prev) => 
+        prev === 0 ? consultorio.imagenes.length - 1 : prev - 1
+      );
+    }
   };
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
+          <p className="text-lg font-medium">Cargando consultorio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!consultorio) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Consultorio no encontrado</h1>
+          <p className="text-muted-foreground mb-4">
+            El consultorio que buscas no existe o ya no está disponible.
+          </p>
+          <Button asChild>
+            <Link href="/consultorios">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a consultorios
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentImages = consultorio.imagenes.length > 0 
+    ? consultorio.imagenes 
+    : [consultorio.imagen_principal].filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6">
-          <Link
-            href="/consultorios"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
+      <div className="container mx-auto px-4 py-8">
+        {/* Navegación superior */}
+        <div className="flex items-center justify-between mb-6">
+          <Button variant="ghost" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a consultorios
-          </Link>
+            Volver
+          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              <Share2 className="h-4 w-4 mr-2" />
+              Compartir
+            </Button>
+            {user && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={toggleFavorite}
+                className={isFavorite ? "text-red-500 border-red-200" : ""}
+              >
+                <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
+                {isFavorite ? "Guardado" : "Guardar"}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Columna principal */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Columna izquierda - Información del consultorio */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Galería de imágenes */}
-            <Card className="overflow-hidden">
-              <div className="relative">
-                <div className="aspect-video relative">
-                  <Image
-                    src={consultorio.imagenes[currentImageIndex]}
-                    alt={consultorio.nombre}
-                    fill
-                    className="object-cover"
-                  />
-                  {/* Controles de navegación */}
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-                {/* Indicadores */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                  {consultorio.imagenes.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-                {/* Botones de acción */}
-                <div className="absolute top-4 right-4 flex space-x-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={toggleFavorite}
-                    className="bg-white/90 hover:bg-white"
-                  >
-                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-                  </Button>
-                  <Button variant="secondary" size="sm" className="bg-white/90 hover:bg-white">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              {/* Miniaturas */}
-              <div className="p-4 flex space-x-2 overflow-x-auto">
-                {consultorio.imagenes.map((imagen, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
-                      index === currentImageIndex ? 'border-primary' : 'border-border'
-                    }`}
-                  >
+            <Card>
+              <CardContent className="p-0">
+                <div className="relative h-96 bg-gradient-to-br from-primary/10 to-accent/20">
+                  {currentImages.length > 0 && currentImages[currentImageIndex] ? (
                     <Image
-                      src={imagen}
-                      alt={`Imagen ${index + 1}`}
-                      width={80}
-                      height={64}
-                      className="object-cover w-full h-full"
+                      src={currentImages[currentImageIndex]}
+                      alt={consultorio.titulo}
+                      fill
+                      className="object-cover rounded-t-lg"
                     />
-                  </button>
-                ))}
-              </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Building className="h-24 w-24 text-muted-foreground" />
+                    </div>
+                  )}
+                  
+                  {currentImages.length > 1 && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur"
+                        onClick={prevImage}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur"
+                        onClick={nextImage}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
             </Card>
 
-            {/* Información del consultorio */}
+            {/* Información básica */}
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-2xl font-bold text-foreground">
-                      {consultorio.nombre}
-                    </CardTitle>
+                    <CardTitle className="text-2xl">{consultorio.titulo}</CardTitle>
                     <div className="flex items-center mt-2 text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-1" />
-                      <span>{consultorio.ubicacion}</span>
+                      <span>{consultorio.ciudad}, {consultorio.estado}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">
-                      ${consultorio.precio}
-                      <span className="text-sm font-normal text-muted-foreground">/hora</span>
+                    <div className="text-3xl font-bold text-primary">
+                      ${consultorio.precio_por_hora.toLocaleString()}
                     </div>
-                    <div className="flex items-center mt-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="ml-1 text-sm">{consultorio.calificacion}</span>
-                      <span className="ml-1 text-sm text-muted-foreground">
-                        ({consultorio.reseñas} reseñas)
-                      </span>
-                    </div>
+                    <div className="text-sm text-muted-foreground">por hora</div>
                   </div>
                 </div>
+                
+                <div className="flex items-center space-x-4 mt-4">
+                  <div className="flex items-center">
+                    <Star className="h-4 w-4 fill-current text-yellow-400 mr-1" />
+                    <span className="font-medium">{consultorio.calificacion_promedio || 0}</span>
+                    <span className="text-muted-foreground ml-1">
+                      ({consultorio.total_calificaciones} reseñas)
+                    </span>
+                  </div>
+                  <Badge variant="secondary">{consultorio.numero_consultorios} consultorio{consultorio.numero_consultorios > 1 ? 's' : ''}</Badge>
+                  {consultorio.metros_cuadrados && (
+                    <Badge variant="outline">{consultorio.metros_cuadrados} m²</Badge>
+                  )}
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Especialidades */}
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">Especialidades</h3>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed">
+                  {consultorio.descripcion}
+                </p>
+                
+                <div className="mt-6">
+                  <h4 className="font-medium mb-3">Especialidades permitidas</h4>
                   <div className="flex flex-wrap gap-2">
                     {consultorio.especialidades.map((especialidad) => (
                       <Badge key={especialidad} variant="secondary">
@@ -265,57 +373,72 @@ export default function ConsultorioPage({ params }: { params: { id: string } }) 
                     ))}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                {/* Descripción */}
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">Descripción</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {consultorio.descripcion}
-                  </p>
-                </div>
-
-                {/* Equipamiento */}
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">Equipamiento</h3>
-                  <div className="grid sm:grid-cols-2 gap-2">
-                    {consultorio.equipamiento.map((equipo) => (
-                      <div key={equipo} className="flex items-center text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                        {equipo}
-                      </div>
-                    ))}
+            {/* Equipamiento y servicios */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Equipamiento y servicios</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium mb-3">Equipamiento incluido</h4>
+                    <ul className="space-y-2">
+                      {consultorio.equipamiento.map((item) => (
+                        <li key={item} className="flex items-center">
+                          <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                          <span className="text-sm">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
-
-                {/* Servicios */}
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">Servicios incluidos</h3>
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    {consultorio.servicios.map((servicio) => (
-                      <div key={servicio.nombre} className="flex items-center p-3 bg-muted/50 rounded-lg">
-                        <servicio.icono className="h-5 w-5 text-primary mr-3" />
-                        <div>
-                          <div className="font-medium text-foreground">{servicio.nombre}</div>
-                          <div className="text-xs text-muted-foreground">{servicio.descripcion}</div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-3">Servicios disponibles</h4>
+                    <div className="space-y-3">
+                      {consultorio.wifi && (
+                        <div className="flex items-center">
+                          <Wifi className="h-4 w-4 text-blue-500 mr-2" />
+                          <span className="text-sm">WiFi gratuito</span>
                         </div>
-                      </div>
-                    ))}
+                      )}
+                      {consultorio.estacionamiento && (
+                        <div className="flex items-center">
+                          <Car className="h-4 w-4 text-blue-500 mr-2" />
+                          <span className="text-sm">Estacionamiento</span>
+                        </div>
+                      )}
+                      {consultorio.permite_mascotas && (
+                        <div className="flex items-center">
+                          <Heart className="h-4 w-4 text-blue-500 mr-2" />
+                          <span className="text-sm">Se permiten mascotas</span>
+                        </div>
+                      )}
+                      {consultorio.aire_acondicionado && (
+                        <div className="flex items-center">
+                          <Shield className="h-4 w-4 text-blue-500 mr-2" />
+                          <span className="text-sm">Aire acondicionado</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Horarios */}
+            {/* Horarios de operación */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Clock className="h-5 w-5 mr-2" />
-                  Horarios de disponibilidad
+                  Horarios de operación
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {Object.entries(consultorio.horarios).map(([dia, horario]) => (
+                  {['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'].map((dia) => (
                     <div key={dia} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                       <span className="font-medium text-foreground capitalize">
                         {dia === 'miercoles' ? 'Miércoles' : 
@@ -323,10 +446,10 @@ export default function ConsultorioPage({ params }: { params: { id: string } }) 
                          dia.charAt(0).toUpperCase() + dia.slice(1)}
                       </span>
                       <span className="text-muted-foreground">
-                        {horario === 'Cerrado' ? (
-                          <span className="text-red-500">Cerrado</span>
+                        {consultorio.dias_disponibles.includes(dia) ? (
+                          `${consultorio.horario_apertura} - ${consultorio.horario_cierre}`
                         ) : (
-                          horario
+                          <span className="text-red-500">Cerrado</span>
                         )}
                       </span>
                     </div>
@@ -335,50 +458,7 @@ export default function ConsultorioPage({ params }: { params: { id: string } }) 
               </CardContent>
             </Card>
 
-            {/* Reseñas */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Reseñas de profesionales</span>
-                  <div className="flex items-center">
-                    <Star className="h-5 w-5 text-yellow-500 fill-current mr-1" />
-                    <span className="font-bold">{consultorio.calificacion}</span>
-                    <span className="text-muted-foreground ml-1">({consultorio.reseñas})</span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {consultorio.reseñasDetalladas.map((reseña) => (
-                    <div key={reseña.id} className="border-b border-border pb-6 last:border-b-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <div className="font-medium text-foreground">{reseña.usuario}</div>
-                          <div className="text-sm text-muted-foreground">{reseña.especialidad}</div>
-                        </div>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="ml-1 text-sm">{reseña.calificacion}</span>
-                        </div>
-                      </div>
-                      <p className="text-muted-foreground text-sm">{reseña.comentario}</p>
-                      <div className="text-xs text-muted-foreground mt-2">
-                        {new Date(reseña.fecha).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Información del propietario */}
+            {/* Propietario */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -386,78 +466,132 @@ export default function ConsultorioPage({ params }: { params: { id: string } }) 
                   Propietario
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                    <Building className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-foreground">{consultorio.propietario.nombre}</div>
-                    <div className="text-sm text-muted-foreground">{consultorio.propietario.tipo}</div>
-                    {consultorio.propietario.verificado && (
-                      <div className="flex items-center mt-1">
-                        <Shield className="h-3 w-3 text-green-500 mr-1" />
-                        <span className="text-xs text-green-600">Verificado</span>
-                      </div>
+              <CardContent>
+                <div className="flex items-start space-x-4">
+                  <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    {consultorio.propietario.avatar_url ? (
+                      <Image
+                        src={consultorio.propietario.avatar_url}
+                        alt={consultorio.propietario.full_name}
+                        width={48}
+                        height={48}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <User className="h-6 w-6 text-primary" />
                     )}
                   </div>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground mr-2" />
-                    <span>{consultorio.propietario.telefono}</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Mail className="h-4 w-4 text-muted-foreground mr-2" />
-                    <span>{consultorio.propietario.email}</span>
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {consultorio.propietario.experiencia}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Políticas */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Políticas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {consultorio.politicas.map((politica, index) => (
-                    <div key={index} className="flex items-start text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground">{politica}</span>
+                  <div className="flex-1">
+                    <h4 className="font-medium">{consultorio.propietario.full_name}</h4>
+                    <p className="text-sm text-muted-foreground">Propietario verificado</p>
+                    <div className="flex items-center space-x-4 mt-3">
+                      {consultorio.propietario.telefono && (
+                        <Button variant="outline" size="sm">
+                          <Phone className="h-4 w-4 mr-2" />
+                          Llamar
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm">
+                        <Mail className="h-4 w-4 mr-2" />
+                        Contactar
+                      </Button>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Botón de reserva */}
-            <Card>
-              <CardContent className="pt-6">
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                  <CalendarDays className="h-4 w-4 mr-2" />
-                  Reservar consultorio
-                </Button>
-                <div className="mt-4 text-center">
-                  <div className="text-2xl font-bold text-primary">
-                    ${consultorio.precio}
-                    <span className="text-sm font-normal text-muted-foreground">/hora</span>
+            {/* Reseñas */}
+            {calificaciones.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Star className="h-5 w-5 mr-2" />
+                    Reseñas de usuarios
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {calificaciones.map((calificacion) => (
+                      <div key={calificacion.id} className="border-b border-border pb-4 last:border-b-0">
+                        <div className="flex items-start space-x-3">
+                          <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            {calificacion.usuario.avatar_url ? (
+                              <Image
+                                src={calificacion.usuario.avatar_url}
+                                alt={calificacion.usuario.full_name}
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              <User className="h-5 w-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-medium">{calificacion.usuario.full_name}</h5>
+                              <div className="flex items-center">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-4 w-4 ${
+                                      i < calificacion.puntuacion 
+                                        ? "fill-current text-yellow-400" 
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {new Date(calificacion.created_at).toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                            <p className="mt-2 text-sm leading-relaxed">
+                              {calificacion.comentario}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Pago seguro • Cancelación gratuita
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Columna derecha - Selector de reservas */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-4">
+              <Card className="border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CalendarDays className="h-5 w-5 mr-2" />
+                    Reservar por horas
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Selecciona fecha y hora para tu consulta
+                  </p>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <HourlyBookingSelector
+                    consultorioId={consultorio.id}
+                    consultorioTitulo={consultorio.titulo}
+                    precioPorHora={consultorio.precio_por_hora}
+                    diasDisponibles={consultorio.dias_disponibles}
+                    onBookingConfirm={handleBookingConfirm}
+                    className="p-6"
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </main>
-
+      </div>
     </div>
   );
 }
