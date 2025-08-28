@@ -57,7 +57,10 @@ export default function RootLayout({
             </SupabaseProvider>
           </ErrorBoundary>
         </ThemeProvider>
-        <Analytics />
+        {/* Analytics opcional - se carga solo si no está bloqueado */}
+        {process.env.NODE_ENV === 'production' && (
+          <Analytics />
+        )}
       </body>
     </html>
   );
