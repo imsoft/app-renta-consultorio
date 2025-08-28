@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/next"
 
 // Deshabilitar prerender globalmente para evitar problemas con Supabase
@@ -50,9 +51,11 @@ export default function RootLayout({
           disableTransitionOnChange
           forcedTheme="light"
         >
-          <SupabaseProvider>
-            {children}
-          </SupabaseProvider>
+          <ErrorBoundary>
+            <SupabaseProvider>
+              {children}
+            </SupabaseProvider>
+          </ErrorBoundary>
         </ThemeProvider>
         <Analytics />
       </body>

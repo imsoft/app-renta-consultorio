@@ -79,11 +79,20 @@ export default function LoginPage() {
     setError("");
     setSuccess("");
     
-    const { error } = await signInWithGoogle();
-    
-    if (error) {
-      console.error("Google sign in error:", error);
-      setError("Error al iniciar sesión con Google. Intenta de nuevo.");
+    try {
+      console.log("Iniciando login con Google...");
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        console.error("Google sign in error:", error);
+        setError("Error al iniciar sesión con Google. Intenta de nuevo.");
+      } else {
+        console.log("Login con Google iniciado exitosamente");
+        setSuccess("Redirigiendo a Google...");
+      }
+    } catch (error) {
+      console.error("Error inesperado en handleGoogleSignIn:", error);
+      setError("Error inesperado. Intenta de nuevo.");
     }
   };
 

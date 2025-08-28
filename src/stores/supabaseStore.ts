@@ -324,10 +324,31 @@ export const useSupabaseStore = create<SupabaseState>()(
       signInWithGoogle: async () => {
         set({ loading: true })
         try {
+          // Verificar que window.location.origin esté disponible
+          if (typeof window === 'undefined') {
+            console.error('Error: window no está disponible (SSR)')
+            set({ loading: false })
+            return { error: new Error('No se puede ejecutar OAuth en el servidor') }
+          }
+
+          // Verificar que el origen esté disponible
+          const origin = window.location.origin
+          if (!origin) {
+            console.error('Error: window.location.origin no está disponible')
+            set({ loading: false })
+            return { error: new Error('No se puede determinar el origen de la aplicación') }
+          }
+
+          console.log('Iniciando Google OAuth con redirectTo:', `${origin}/dashboard`)
+
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/dashboard`
+              redirectTo: `${origin}/dashboard`,
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent'
+              }
             }
           })
           
@@ -337,9 +358,11 @@ export const useSupabaseStore = create<SupabaseState>()(
             return { error }
           }
           
+          // Si no hay error, la redirección debería ocurrir automáticamente
+          console.log('Google OAuth iniciado exitosamente')
           return { error: null }
         } catch (error) {
-          console.error('Error en signInWithGoogle:', error)
+          console.error('Error inesperado en signInWithGoogle:', error)
           set({ loading: false })
           return { error }
         }

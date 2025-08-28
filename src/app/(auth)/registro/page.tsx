@@ -98,11 +98,20 @@ export default function RegistroPage() {
     setError("");
     setSuccess("");
     
-    const { error } = await signInWithGoogle();
-    
-    if (error) {
-      console.error("Google sign up error:", error);
-      setError("Error al registrarse con Google. Intenta de nuevo.");
+    try {
+      console.log("Iniciando registro con Google...");
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        console.error("Google sign up error:", error);
+        setError("Error al registrarse con Google. Intenta de nuevo.");
+      } else {
+        console.log("Registro con Google iniciado exitosamente");
+        setSuccess("Redirigiendo a Google...");
+      }
+    } catch (error) {
+      console.error("Error inesperado en handleGoogleSignUp:", error);
+      setError("Error inesperado. Intenta de nuevo.");
     }
   };
 
