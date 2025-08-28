@@ -1,173 +1,162 @@
 "use client";
 
-import { useState, useEffect } from "react";
-
-// Forzar renderizado dinámico para evitar problemas con Supabase
-export const dynamic = 'force-dynamic';
-import { useRouter } from "next/navigation";
-import { 
-  Calendar, 
-  Clock, 
-  Search, 
-  Filter,
-  Eye,
-  CheckCircle,
-  XCircle,
-  MessageSquare,
-  Phone,
-  Mail,
-  DollarSign,
-  CalendarDays,
-  Users
-} from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Calendar, 
+  Clock, 
+  DollarSign, 
+  User, 
+  Phone, 
+  Mail, 
+  Eye, 
+  MessageSquare,
+  Filter,
+  Search
+} from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
-// Tipos para las reservas
+// Forzar renderizado dinámico para evitar problemas con Supabase
+export const dynamic = 'force-dynamic';
+
 interface Reserva {
-  id: number;
-  consultorio: string;
-  profesional?: string;
-  propietario?: string;
-  email: string;
-  telefono: string;
+  id: string;
   fecha: string;
-  hora: string;
-  duracion: string;
-  precio: number;
-  estado: "confirmada" | "pendiente" | "cancelada";
-  especialidad: string;
-  notas?: string;
+  hora_inicio: string;
+  duracion_horas: number;
+  precio_total: number;
+  estado: string;
+  notas: string;
+  consultorios: {
+    nombre: string;
+    ubicacion: string;
+  };
+  profiles: {
+    nombre: string;
+    apellidos: string;
+    telefono: string;
+    email: string;
+  };
 }
-
-// Datos simulados de reservas
-const reservasData: {
-  propietario: Reserva[];
-  profesional: Reserva[];
-} = {
-  propietario: [
-    {
-      id: 1,
-      consultorio: "Consultorio Médico Central",
-      profesional: "Dr. Laura Martínez",
-      email: "laura.martinez@email.com",
-      telefono: "+52 55 1234 5678",
-      fecha: "2024-01-25",
-      hora: "14:00",
-      duracion: "2 horas",
-      precio: 1600,
-      estado: "confirmada",
-      especialidad: "Cardiología",
-      notas: "Paciente con antecedentes cardíacos"
-    },
-    {
-      id: 2,
-      consultorio: "Clínica Especializada Norte",
-      profesional: "Dra. Ana García",
-      email: "ana.garcia@email.com",
-      telefono: "+52 55 9876 5432",
-      fecha: "2024-01-26",
-      hora: "10:00",
-      duracion: "1 hora",
-      precio: 1200,
-      estado: "pendiente",
-      especialidad: "Dermatología",
-      notas: "Consulta de seguimiento"
-    },
-    {
-      id: 3,
-      consultorio: "Consultorio Médico Central",
-      profesional: "Dr. Carlos López",
-      email: "carlos.lopez@email.com",
-      telefono: "+52 55 5555 1234",
-      fecha: "2024-01-27",
-      hora: "16:00",
-      duracion: "3 horas",
-      precio: 2400,
-      estado: "cancelada",
-      especialidad: "Ortopedia",
-      notas: "Cancelada por el profesional"
-    },
-    {
-      id: 4,
-      consultorio: "Clínica Especializada Norte",
-      profesional: "Dra. María Rodríguez",
-      email: "maria.rodriguez@email.com",
-      telefono: "+52 55 7777 8888",
-      fecha: "2024-01-28",
-      hora: "09:00",
-      duracion: "1.5 horas",
-      precio: 1800,
-      estado: "confirmada",
-      especialidad: "Ginecología",
-      notas: "Consulta prenatal"
-    }
-  ],
-  profesional: [
-    {
-      id: 1,
-      consultorio: "Consultorio Médico Central",
-      propietario: "Dr. Roberto Silva",
-      email: "roberto.silva@email.com",
-      telefono: "+52 55 1111 2222",
-      fecha: "2024-01-25",
-      hora: "14:00",
-      duracion: "2 horas",
-      precio: 1600,
-      estado: "confirmada",
-      especialidad: "Cardiología",
-      notas: "Paciente con antecedentes cardíacos"
-    },
-    {
-      id: 2,
-      consultorio: "Clínica Especializada Norte",
-      propietario: "Dra. Patricia Morales",
-      email: "patricia.morales@email.com",
-      telefono: "+52 55 3333 4444",
-      fecha: "2024-01-26",
-      hora: "10:00",
-      duracion: "1 hora",
-      precio: 1200,
-      estado: "pendiente",
-      especialidad: "Dermatología",
-      notas: "Consulta de seguimiento"
-    }
-  ]
-};
 
 export default function ReservasPage() {
   const { user, isAuthenticated, isLoading } = useAuthStore();
-  const router = useRouter();
   const [reservas, setReservas] = useState<Reserva[]>([]);
-  const [filtroEstado, setFiltroEstado] = useState<string>("todos");
-  const [filtroConsultorio, setFiltroConsultorio] = useState<string>("todos");
-  const [busqueda, setBusqueda] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [consultorioFilter, setConsultorioFilter] = useState("todos");
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+    if (isAuthenticated && user) {
+      fetchReservas();
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, user]);
 
-  useEffect(() => {
-    if (user) {
-      const data = user.role === "professional" ? reservasData.profesional : reservasData.propietario;
-      setReservas(data);
+  const fetchReservas = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      let query = supabase
+        .from('reservas')
+        .select(`
+          *,
+          consultorios (
+            nombre,
+            ubicacion
+          ),
+          profiles (
+            nombre,
+            apellidos,
+            telefono,
+            email
+          )
+        `);
+
+      // Filtrar por tipo de usuario
+      if (user.role === "professional") {
+        query = query.eq('profesional_id', user.id);
+      } else if (user.role === "owner") {
+        query = query.eq('consultorios.propietario_id', user.id);
+      }
+
+      // Aplicar filtros
+      if (statusFilter !== "todos") {
+        query = query.eq('estado', statusFilter);
+      }
+
+      if (consultorioFilter !== "todos") {
+        query = query.eq('consultorio_id', consultorioFilter);
+      }
+
+      const { data, error } = await query.order('fecha', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching reservas:', error);
+        return;
+      }
+
+      // Filtrar por término de búsqueda
+      let filteredData = data || [];
+      if (searchTerm) {
+        filteredData = filteredData.filter(reserva => 
+          reserva.consultorios?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          `${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      setReservas(filteredData);
+    } catch (error) {
+      console.error('Error fetching reservas:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
+  };
 
-  if (isLoading) {
+  const getStatusBadgeVariant = (estado: string) => {
+    switch (estado) {
+      case 'confirmada':
+        return 'default';
+      case 'pendiente':
+        return 'secondary';
+      case 'cancelada':
+        return 'destructive';
+      case 'completada':
+        return 'outline';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getStatusText = (estado: string) => {
+    switch (estado) {
+      case 'confirmada':
+        return 'Confirmada';
+      case 'pendiente':
+        return 'Pendiente';
+      case 'cancelada':
+        return 'Cancelada';
+      case 'completada':
+        return 'Completada';
+      default:
+        return estado;
+    }
+  };
+
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
+          <p className="text-muted-foreground">Cargando reservas...</p>
         </div>
       </div>
     );
@@ -177,129 +166,71 @@ export default function ReservasPage() {
     return null;
   }
 
-  // Filtrar reservas
-  const reservasFiltradas = reservas.filter((reserva: Reserva) => {
-    const cumpleEstado = filtroEstado === "todos" || reserva.estado === filtroEstado;
-    const cumpleConsultorio = filtroConsultorio === "todos" || reserva.consultorio === filtroConsultorio;
-    const cumpleBusqueda = busqueda === "" || 
-      reserva.consultorio.toLowerCase().includes(busqueda.toLowerCase()) ||
-              (user?.role === "professional" ? reserva.propietario : reserva.profesional)?.toLowerCase().includes(busqueda.toLowerCase());
-    
-    return cumpleEstado && cumpleConsultorio && cumpleBusqueda;
-  });
-
-  const getEstadoColor = (estado: string): string => {
-    switch (estado) {
-      case "confirmada":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "pendiente":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "cancelada":
-        return "bg-red-50 text-red-700 border-red-200";
-      default:
-        return "bg-muted text-muted-foreground border-border";
-    }
-  };
-
-  const getEstadoText = (estado: string): string => {
-    switch (estado) {
-      case "confirmada":
-        return "Confirmada";
-      case "pendiente":
-        return "Pendiente";
-      case "cancelada":
-        return "Cancelada";
-      default:
-        return estado;
-    }
-  };
-
-  const handleConfirmarReserva = (id: number): void => {
-    setReservas(prev => prev.map(reserva => 
-      reserva.id === id ? { ...reserva, estado: "confirmada" as const } : reserva
-    ));
-  };
-
-  const handleCancelarReserva = (id: number): void => {
-    setReservas(prev => prev.map(reserva => 
-      reserva.id === id ? { ...reserva, estado: "cancelada" as const } : reserva
-    ));
-  };
-
-  const limpiarFiltros = (): void => {
-    setFiltroEstado("todos");
-    setFiltroConsultorio("todos");
-    setBusqueda("");
-  };
-
-  const consultoriosUnicos = [...new Set(reservas.map(r => r.consultorio))];
+  const totalReservas = reservas.length;
+  const reservasConfirmadas = reservas.filter(r => r.estado === 'confirmada').length;
+  const reservasPendientes = reservas.filter(r => r.estado === 'pendiente').length;
+  const ingresosTotales = reservas.reduce((sum, r) => sum + (r.precio_total || 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
-      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {user?.role === "professional" ? "Mis Reservas" : "Gestionar Reservas"}
-            </h1>
+            <h1 className="text-3xl font-bold text-foreground">Mis Reservas</h1>
             <p className="text-muted-foreground mt-1">
-              {user?.role === "professional" 
-                ? "Gestiona tus reservas de consultorios" 
-                : "Administra las reservas de tus consultorios"
-              }
+              Gestiona tus reservas de consultorios
             </p>
           </div>
-          <Button asChild>
-            <Link href="/dashboard">
+          <Button asChild className="mt-4 sm:mt-0">
+            <a href="/dashboard">
               <Calendar className="h-4 w-4 mr-2" />
               Volver al Dashboard
-            </Link>
+            </a>
           </Button>
         </div>
 
-        {/* Filtros y búsqueda */}
+        {/* Filtros */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="grid sm:grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar por consultorio o profesional..."
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Buscar por consultorio o profesional..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              
-              <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filtrar por estado" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos los estados</SelectItem>
                   <SelectItem value="confirmada">Confirmadas</SelectItem>
                   <SelectItem value="pendiente">Pendientes</SelectItem>
                   <SelectItem value="cancelada">Canceladas</SelectItem>
+                  <SelectItem value="completada">Completadas</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Select value={filtroConsultorio} onValueChange={setFiltroConsultorio}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filtrar por consultorio" />
+              <Select value={consultorioFilter} onValueChange={setConsultorioFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Todos los consultorios" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos los consultorios</SelectItem>
-                  {consultoriosUnicos.map(consultorio => (
-                    <SelectItem key={consultorio} value={consultorio}>
-                      {consultorio}
-                    </SelectItem>
-                  ))}
+                  {/* Aquí se podrían agregar los consultorios específicos */}
                 </SelectContent>
               </Select>
-
-              <Button variant="outline" className="flex items-center" onClick={limpiarFiltros}>
+              <Button variant="outline" onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("todos");
+                setConsultorioFilter("todos");
+              }}>
                 <Filter className="h-4 w-4 mr-2" />
                 Limpiar filtros
               </Button>
@@ -314,49 +245,42 @@ export default function ReservasPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Reservas</p>
-                  <p className="text-2xl font-bold text-foreground">{formatNumber(reservas.length)}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalReservas}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
-          
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Confirmadas</p>
-                  <p className="text-2xl font-bold text-green-700">
-                    {formatNumber(reservas.filter(r => r.estado === "confirmada").length)}
-                  </p>
+                  <p className="text-2xl font-bold text-foreground">{reservasConfirmadas}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-700" />
+                <div className="h-8 w-8 text-green-600 flex items-center justify-center">
+                  <div className="w-4 h-4 bg-green-600 rounded-full"></div>
+                </div>
               </div>
             </CardContent>
           </Card>
-          
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pendientes</p>
-                  <p className="text-2xl font-bold text-yellow-700">
-                    {formatNumber(reservas.filter(r => r.estado === "pendiente").length)}
-                  </p>
+                  <p className="text-2xl font-bold text-foreground">{reservasPendientes}</p>
                 </div>
-                <Clock className="h-8 w-8 text-yellow-700" />
+                <Clock className="h-8 w-8 text-yellow-600" />
               </div>
             </CardContent>
           </Card>
-          
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Ingresos Totales</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(reservas.filter(r => r.estado === "confirmada").reduce((sum, r) => sum + r.precio, 0))}
-                  </p>
+                  <p className="text-2xl font-bold text-foreground">${ingresosTotales.toLocaleString()}</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-primary" />
               </div>
@@ -364,67 +288,68 @@ export default function ReservasPage() {
           </Card>
         </div>
 
-        {/* Lista de reservas */}
-        <div className="space-y-4">
-          {reservasFiltradas.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No se encontraron reservas</h3>
-                <p className="text-muted-foreground">
-                  No hay reservas que coincidan con los filtros aplicados.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            reservasFiltradas.map((reserva: Reserva) => (
-              <Card key={reserva.id} className="hover:shadow-md transition-shadow">
+        {/* Lista de Reservas */}
+        <div className="space-y-6">
+          {reservas.length > 0 ? (
+            reservas.map((reserva) => (
+              <Card key={reserva.id}>
                 <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                    {/* Información principal */}
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-start justify-between">
+                  <div className="flex flex-col lg:flex-row justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-semibold text-foreground">
-                            {reserva.consultorio}
+                            {reserva.consultorios?.nombre}
                           </h3>
                           <p className="text-muted-foreground">
-                            {user?.role === "professional" ? reserva.propietario : reserva.profesional}
+                            {user?.role === "professional" 
+                              ? `${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`
+                              : `${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`
+                            }
                           </p>
                         </div>
-                        <Badge className={`${getEstadoColor(reserva.estado)}`}>
-                          {getEstadoText(reserva.estado)}
+                        <Badge variant={getStatusBadgeVariant(reserva.estado)}>
+                          {getStatusText(reserva.estado)}
                         </Badge>
                       </div>
                       
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                        <div className="flex items-center">
-                          <CalendarDays className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>{formatDate(reserva.fecha)}</span>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {new Date(reserva.fecha).toLocaleDateString('es-ES')}
+                          </span>
                         </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>{reserva.hora} ({reserva.duracion})</span>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {reserva.hora_inicio} ({reserva.duracion_horas} hora{reserva.duracion_horas > 1 ? 's' : ''})
+                          </span>
                         </div>
-                        <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>{formatCurrency(reserva.precio)}</span>
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">
+                            ${reserva.precio_total?.toLocaleString()}
+                          </span>
                         </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <span>{reserva.especialidad}</span>
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {user?.role === "professional" ? "Propietario" : "Profesional"}
+                          </span>
                         </div>
                       </div>
-                      
+
                       {reserva.notas && (
-                        <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
-                          <strong>Notas:</strong> {reserva.notas}
-                        </p>
+                        <div className="mb-4">
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Notas:</strong> {reserva.notas}
+                          </p>
+                        </div>
                       )}
                     </div>
 
-                    {/* Acciones */}
-                    <div className="flex flex-col space-y-2 lg:ml-6">
+                    <div className="lg:ml-6 space-y-3">
                       <div className="flex space-x-2">
                         <Button size="sm" variant="outline">
                           <Eye className="h-4 w-4 mr-2" />
@@ -436,46 +361,48 @@ export default function ReservasPage() {
                         </Button>
                       </div>
                       
-                      {user?.role === "owner" && reserva.estado === "pendiente" && (
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleConfirmarReserva(reserva.id)}
-                            className="bg-green-700 hover:bg-green-800 text-white"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Confirmar
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleCancelarReserva(reserva.id)}
-                          >
-                            <XCircle className="h-4 w-4 mr-2" />
-                            Rechazar
-                          </Button>
-                        </div>
-                      )}
-                      
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Phone className="h-4 w-4 mr-2" />
-                          {reserva.telefono}
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Mail className="h-4 w-4 mr-2" />
-                          {reserva.email}
-                        </Button>
+                      <div className="space-y-2">
+                        {reserva.profiles?.telefono && (
+                          <div className="flex items-center space-x-2 text-sm">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{reserva.profiles.telefono}</span>
+                          </div>
+                        )}
+                        {reserva.profiles?.email && (
+                          <div className="flex items-center space-x-2 text-sm">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{reserva.profiles.email}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ))
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="space-y-4">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto" />
+                  <h3 className="text-lg font-semibold text-foreground">No hay reservas</h3>
+                  <p className="text-muted-foreground">
+                    {user?.role === "professional" 
+                      ? "No tienes reservas programadas. Busca consultorios disponibles."
+                      : "No hay reservas en tus consultorios."
+                    }
+                  </p>
+                                     {user?.role === "professional" && (
+                     <Button asChild>
+                       <Link href="/consultorios">Buscar consultorios</Link>
+                     </Button>
+                   )}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </main>
-
     </div>
   );
 }
