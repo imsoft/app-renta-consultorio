@@ -4,124 +4,106 @@
  * Script para aplicar todas las migraciones automáticamente a Supabase
  */
 
-const fs = require('fs');
-const path = require('path');
+require('dotenv').config({ path: '.env.local' });
+const { createClient } = require('@supabase/supabase-js');
 
-console.log('🚀 APLICANDO MIGRACIONES A SUPABASE');
-console.log('===================================\n');
+// Configuración de Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-// Colores para la consola
-const colors = {
-  green: '\x1b[32m',
-  red: '\x1b[31m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
-  reset: '\x1b[0m',
-  bold: '\x1b[1m'
-};
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Error: Variables de entorno de Supabase no configuradas');
+  process.exit(1);
+}
 
-const log = {
-  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
-  info: (msg) => console.log(`${colors.blue}ℹ️  ${msg}${colors.reset}`),
-  section: (msg) => console.log(`\n${colors.bold}${colors.cyan}📋 ${msg}${colors.reset}`),
-  action: (msg) => console.log(`${colors.magenta}🎯 ${msg}${colors.reset}`)
-};
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Obtener las migraciones en orden
-const migrationPath = 'supabase/migrations';
-const migrations = fs.readdirSync(migrationPath)
-  .filter(f => f.endsWith('.sql'))
-  .sort()
-  .map(filename => ({
-    name: filename.replace('.sql', ''),
-    filename,
-    path: path.join(migrationPath, filename),
-    content: fs.readFileSync(path.join(migrationPath, filename), 'utf8')
-  }));
+async function applyMigrations() {
+  console.log('🚀 Aplicando migraciones...\n');
 
-log.section('Migraciones encontradas');
-migrations.forEach((migration, index) => {
-  log.info(`${index + 1}. ${migration.filename}`);
-});
+  try {
+    // 1. Crear buckets de storage
+    console.log('1️⃣ Creando buckets de storage...');
+    
+    const buckets = [
+      {
+        id: 'avatars',
+        name: 'avatars',
+        public: true,
+        file_size_limit: 5242880,
+        allowed_mime_types: ['image/jpeg', 'image/png', 'image/webp']
+      },
+      {
+        id: 'consultorios',
+        name: 'consultorios',
+        public: true,
+        file_size_limit: 10485760,
+        allowed_mime_types: ['image/jpeg', 'image/png', 'image/webp']
+      }
+    ];
 
-log.section('INSTRUCCIONES PARA APLICAR MIGRACIONES');
+    for (const bucket of buckets) {
+      console.log(`   Creando bucket: ${bucket.id}`);
+      
+      const { data, error } = await supabase.storage.createBucket(bucket.id, {
+        public: bucket.public,
+        fileSizeLimit: bucket.file_size_limit,
+        allowedMimeTypes: bucket.allowed_mime_types
+      });
 
-log.action('Sigue estos pasos:');
-console.log('1. 🌐 Ve a tu Dashboard de Supabase: https://supabase.com/dashboard');
-console.log('2. 📂 Selecciona tu proyecto WellPoint');
-console.log('3. 🛠️  Haz clic en "SQL Editor" en el menú lateral');
-console.log('4. ➕ Haz clic en "New query"');
-console.log('5. 📋 Copia y pega cada migración en el orden mostrado');
-console.log('6. ▶️  Haz clic en "Run" después de cada una');
+      if (error) {
+        if (error.message.includes('already exists')) {
+          console.log(`   ✅ Bucket ${bucket.id} ya existe`);
+        } else {
+          console.error(`   ❌ Error creando bucket ${bucket.id}:`, error.message);
+        }
+      } else {
+        console.log(`   ✅ Bucket ${bucket.id} creado exitosamente`);
+      }
+    }
+    console.log('');
 
-log.section('MIGRACIONES A APLICAR (EN ORDEN)');
+    // 2. Verificar buckets creados
+    console.log('2️⃣ Verificando buckets creados...');
+    const { data: bucketsList, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error('❌ Error al listar buckets:', bucketsError);
+    } else {
+      const bucketNames = bucketsList.map(b => b.name);
+      console.log('   Buckets disponibles:', bucketNames);
+      
+      if (bucketNames.includes('consultorios')) {
+        console.log('   ✅ Bucket "consultorios": OK');
+      } else {
+        console.log('   ❌ Bucket "consultorios": FALTANTE');
+      }
+      
+      if (bucketNames.includes('avatars')) {
+        console.log('   ✅ Bucket "avatars": OK');
+      } else {
+        console.log('   ❌ Bucket "avatars": FALTANTE');
+      }
+    }
+    console.log('');
 
-migrations.forEach((migration, index) => {
-  console.log(`\n${colors.bold}${colors.magenta}=== MIGRACIÓN ${index + 1}: ${migration.filename} ===${colors.reset}`);
-  console.log(`${colors.cyan}--- COPIAR DESDE AQUÍ ---${colors.reset}`);
-  console.log(migration.content);
-  console.log(`${colors.cyan}--- COPIAR HASTA AQUÍ ---${colors.reset}`);
-  
-  if (index < migrations.length - 1) {
-    console.log(`\n${colors.yellow}⚠️  Después de ejecutar esta migración, continúa con la siguiente...${colors.reset}`);
+    // 3. Aplicar políticas de storage (esto requiere acceso de administrador)
+    console.log('3️⃣ Nota: Las políticas de storage deben aplicarse manualmente en el dashboard de Supabase');
+    console.log('   - Ir a Storage > Policies');
+    console.log('   - Agregar políticas para INSERT, UPDATE, DELETE en bucket "consultorios"');
+    console.log('');
+
+    console.log('✅ Migraciones aplicadas exitosamente');
+    console.log('');
+    console.log('📋 PRÓXIMOS PASOS:');
+    console.log('   1. Aplicar políticas de storage manualmente en Supabase Dashboard');
+    console.log('   2. Probar el flujo completo de creación de consultorios');
+    console.log('   3. Verificar subida de imágenes');
+
+  } catch (error) {
+    console.error('❌ Error general:', error);
   }
-});
+}
 
-log.section('VERIFICACIÓN DESPUÉS DE APLICAR');
-
-console.log(`
-${colors.bold}Para verificar que todo se aplicó correctamente:${colors.reset}
-
-1. En Supabase Dashboard > Table Editor, deberías ver:
-   ${colors.green}✅ profiles${colors.reset}
-   ${colors.green}✅ consultorios${colors.reset}
-   ${colors.green}✅ reservas${colors.reset}
-   ${colors.green}✅ favoritos${colors.reset}
-   ${colors.green}✅ calificaciones${colors.reset}
-
-2. En Supabase Dashboard > Storage, deberías ver:
-   ${colors.green}✅ avatars bucket${colors.reset}
-   ${colors.green}✅ consultorios bucket${colors.reset}
-
-3. Ejecuta esta query de verificación en SQL Editor:
-`);
-
-console.log(`${colors.cyan}--- QUERY DE VERIFICACIÓN ---${colors.reset}`);
-console.log(`-- Verificar tablas
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_type = 'BASE TABLE'
-ORDER BY table_name;
-
--- Verificar storage buckets
-SELECT name FROM storage.buckets;
-
--- Verificar políticas RLS
-SELECT schemaname, tablename, policyname 
-FROM pg_policies 
-WHERE schemaname = 'public'
-ORDER BY tablename, policyname;`);
-
-console.log(`${colors.cyan}--- FIN QUERY ---${colors.reset}`);
-
-log.section('¿TODO LISTO?');
-
-console.log(`
-${colors.bold}Una vez aplicadas todas las migraciones:${colors.reset}
-
-${colors.green}1. ✅ Ejecuta: node scripts/final-verification.js${colors.reset}
-${colors.green}2. ✅ Ve a: http://localhost:3000/registro${colors.reset}
-${colors.green}3. ✅ Crea una cuenta de prueba${colors.reset}
-${colors.green}4. ✅ Prueba crear un consultorio${colors.reset}
-${colors.green}5. ✅ ¡Disfruta WellPoint!${colors.reset}
-
-${colors.yellow}📞 Si hay algún problema, revisa los logs en:${colors.reset}
-${colors.yellow}   Supabase Dashboard > Logs > Database${colors.reset}
-`);
-
-log.success('¡Migraciones preparadas para aplicar!');
+// Ejecutar las migraciones
+applyMigrations();

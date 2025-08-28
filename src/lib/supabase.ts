@@ -205,3 +205,42 @@ export type Database = {
     }
   }
 }
+
+// Funciones para manejo de imágenes
+export const uploadConsultorioImage = async (file: File, consultorioId: string): Promise<{ url: string; error: Error | null }> => {
+  try {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${consultorioId}/${Date.now()}.${fileExt}`
+    
+    const { data, error } = await supabase.storage
+      .from('consultorios')
+      .upload(fileName, file)
+    
+    if (error) {
+      console.error('Error uploading image:', error)
+      return { url: '', error }
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('consultorios')
+      .getPublicUrl(fileName)
+    
+    return { url: publicUrl, error: null }
+  } catch (error) {
+    console.error('Error in uploadConsultorioImage:', error)
+    return { url: '', error: error as Error }
+  }
+}
+
+export const deleteConsultorioImage = async (fileName: string): Promise<{ error: Error | null }> => {
+  try {
+    const { error } = await supabase.storage
+      .from('consultorios')
+      .remove([fileName])
+    
+    return { error }
+  } catch (error) {
+    console.error('Error in deleteConsultorioImage:', error)
+    return { error: error as Error }
+  }
+}

@@ -40,6 +40,7 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useSupabaseStore } from "@/stores/supabaseStore";
 import Image from "next/image";
+import { DebugInfo } from "@/components/DebugInfo";
 
 // Schema de validación para el formulario de consultorio
 const consultorioSchema = z.object({
@@ -212,6 +213,18 @@ function CrearConsultorioPageContent() {
     setSuccess("");
 
     try {
+      // Validar que el usuario esté autenticado
+      if (!isAuthenticated || !user) {
+        setError("Debes estar autenticado para crear un consultorio.");
+        return;
+      }
+
+      // Validar que el usuario tenga el rol correcto
+      if (user.role !== "owner") {
+        setError("Solo los propietarios pueden crear consultorios.");
+        return;
+      }
+
       const consultorioData = {
         titulo: data.titulo,
         descripcion: data.descripcion,
@@ -238,11 +251,27 @@ function CrearConsultorioPageContent() {
         imagen_principal: uploadedImages[0] || undefined,
       };
 
+      console.log("Creando consultorio con datos:", consultorioData);
+
       const { data: newConsultorio, error } = await createConsultorio(consultorioData);
 
-      if (error || !newConsultorio) {
+      if (error) {
         console.error("Error al crear consultorio:", error);
-        setError("Error al crear el consultorio. Por favor, intenta de nuevo.");
+        
+        // Proporcionar mensajes de error más específicos
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('permission')) {
+          setError("No tienes permisos para crear consultorios. Verifica tu rol de usuario.");
+        } else if (errorMessage.includes('storage')) {
+          setError("Error al subir las imágenes. Por favor, intenta de nuevo.");
+        } else {
+          setError(`Error al crear el consultorio: ${errorMessage || 'Error desconocido'}`);
+        }
+        return;
+      }
+
+      if (!newConsultorio) {
+        setError("No se pudo crear el consultorio. Por favor, intenta de nuevo.");
         return;
       }
 
@@ -252,7 +281,7 @@ function CrearConsultorioPageContent() {
       }, 2000);
 
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error inesperado:", error);
       setError("Error inesperado. Por favor, intenta de nuevo.");
     }
   };
@@ -333,6 +362,9 @@ function CrearConsultorioPageContent() {
             <span>Imágenes</span>
           </div>
         </div>
+
+        {/* Debug Info - Solo mostrar en desarrollo */}
+        <DebugInfo show={process.env.NODE_ENV === 'development'} />
 
         {/* Messages */}
         {error && (

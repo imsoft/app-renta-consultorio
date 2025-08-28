@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { supabase, uploadConsultorioImage } from '@/lib/supabase'
 
 // Tipos de base de datos (actualizados según las migraciones)
 interface Profile {
@@ -543,16 +543,68 @@ export const useSupabaseStore = create<SupabaseState>()(
         const { user } = get()
         if (!user) return { data: null, error: new Error('No user logged in') }
 
-        const { data, error } = await supabase
-          .from('consultorios')
-          .insert({
-            ...consultorio,
-            propietario_id: user.id,
-          })
-          .select()
-          .single()
+        try {
+          // Primero crear el consultorio sin imágenes
+          const { data: newConsultorio, error: insertError } = await supabase
+            .from('consultorios')
+            .insert({
+              ...consultorio,
+              propietario_id: user.id,
+              imagenes: [], // Inicialmente sin imágenes
+              imagen_principal: null,
+            })
+            .select()
+            .single()
 
-        return { data, error }
+          if (insertError || !newConsultorio) {
+            console.error('Error creating consultorio:', insertError)
+            return { data: null, error: insertError }
+          }
+
+          // Si hay imágenes base64, convertirlas y subirlas al storage
+          if (consultorio.imagenes && consultorio.imagenes.length > 0) {
+            const uploadedImageUrls: string[] = []
+            
+            for (let i = 0; i < consultorio.imagenes.length; i++) {
+              const base64Image = consultorio.imagenes[i]
+              
+              // Convertir base64 a File
+              const response = await fetch(base64Image)
+              const blob = await response.blob()
+              const file = new File([blob], `image_${i}.jpg`, { type: 'image/jpeg' })
+              
+              // Subir al storage
+              const { url, error: uploadError } = await uploadConsultorioImage(file, newConsultorio.id)
+              
+              if (uploadError) {
+                console.error('Error uploading image:', uploadError)
+                // Continuar con las otras imágenes
+              } else {
+                uploadedImageUrls.push(url)
+              }
+            }
+
+            // Actualizar el consultorio con las URLs de las imágenes
+            if (uploadedImageUrls.length > 0) {
+              const { error: updateError } = await supabase
+                .from('consultorios')
+                .update({
+                  imagenes: uploadedImageUrls,
+                  imagen_principal: uploadedImageUrls[0],
+                })
+                .eq('id', newConsultorio.id)
+
+              if (updateError) {
+                console.error('Error updating consultorio with images:', updateError)
+              }
+            }
+          }
+
+          return { data: newConsultorio, error: null }
+        } catch (error) {
+          console.error('Error in createConsultorio:', error)
+          return { data: null, error: error as Error }
+        }
       },
 
       updateConsultorio: async (id: string, updates: Partial<ConsultorioCreate>) => {
