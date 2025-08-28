@@ -356,42 +356,42 @@ export default function DashboardPage() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {user?.role === "professional" ? (
                   <>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <Eye className="h-6 w-6 mb-2" />
                       <span>Buscar consultorios</span>
                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <Star className="h-6 w-6 mb-2" />
                       <span>Mis favoritos</span>
                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <Calendar className="h-6 w-6 mb-2" />
                       <span>Mis reservas</span>
                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <Users className="h-6 w-6 mb-2" />
                       <span>Mi perfil</span>
                     </Button>
                   </>
                 ) : (
                   <>
-                                         <Button asChild variant="outline" className="h-auto p-4 flex-col">
-                       <Building2 className="h-6 w-6 mb-2" />
-                       <span>Mis consultorios</span>
-                     </Button>
-                     <Button asChild variant="outline" className="h-auto p-4 flex-col">
-                       <Eye className="h-6 w-6 mb-2" />
-                       <span>Crear consultorio</span>
-                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
+                      <Building2 className="h-6 w-6 mb-2" />
+                      <span>Mis consultorios</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto p-4 flex-col">
+                      <Eye className="h-6 w-6 mb-2" />
+                      <span>Crear consultorio</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <Calendar className="h-6 w-6 mb-2" />
                       <span>Gestionar reservas</span>
                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <DollarSign className="h-6 w-6 mb-2" />
                       <span>Ver ingresos</span>
                     </Button>
-                    <Button asChild variant="outline" className="h-auto p-4 flex-col">
+                    <Button variant="outline" className="h-auto p-4 flex-col">
                       <Users className="h-6 w-6 mb-2" />
                       <span>Mi perfil</span>
                     </Button>
