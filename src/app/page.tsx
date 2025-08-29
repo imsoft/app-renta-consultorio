@@ -444,16 +444,22 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
             <Button
+              asChild
               variant="secondary"
               className="px-6 sm:px-8 py-3 bg-background text-primary hover:bg-background/90 font-semibold text-sm sm:text-base"
             >
-              Soy Profesional de la Salud
+              <Link href="/consultorios">
+                Soy Profesional de la Salud
+              </Link>
             </Button>
             <Button
+              asChild
               variant="outline"
               className="px-6 sm:px-8 py-3 border-2 border-background text-background hover:bg-background hover:text-primary font-semibold text-sm sm:text-base bg-background/10"
             >
-              Tengo un Consultorio
+              <Link href="/consultorios/crear">
+                Tengo un Consultorio
+              </Link>
             </Button>
           </div>
         </div>
