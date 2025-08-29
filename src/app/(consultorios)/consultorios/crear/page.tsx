@@ -654,7 +654,6 @@ function CrearConsultorioPageContent() {
                           <HorariosManager
                             horarios={field.value}
                             onHorariosChange={field.onChange}
-                            duracionSlot={60}
                           />
                         </FormControl>
                         <FormMessage />

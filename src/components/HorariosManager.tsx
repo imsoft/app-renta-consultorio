@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar, Copy, CheckCircle, AlertCircle, Settings } from "lucide-react";
+import { Clock, Calendar, Copy, CheckCircle } from "lucide-react";
 
 interface HorarioDia {
   abierto: boolean;
@@ -43,7 +43,7 @@ const diasSemana = [
 export default function HorariosManager({ horarios, onHorariosChange }: HorariosManagerProps) {
   const [copiedDay, setCopiedDay] = useState<string | null>(null);
 
-  const updateHorario = (dia: string, campo: keyof HorarioDia, valor: any) => {
+  const updateHorario = (dia: string, campo: keyof HorarioDia, valor: string | boolean) => {
     const nuevosHorarios = {
       ...horarios,
       [dia]: {
@@ -75,7 +75,7 @@ export default function HorariosManager({ horarios, onHorariosChange }: Horarios
   };
 
   const getHorarioResumen = () => {
-    const diasAbiertos = Object.entries(horarios).filter(([_, horario]) => horario.abierto);
+    const diasAbiertos = Object.entries(horarios).filter(([, horario]) => horario.abierto);
     if (diasAbiertos.length === 0) return "No hay días configurados";
     
     const grupos = new Map<string, string[]>();
