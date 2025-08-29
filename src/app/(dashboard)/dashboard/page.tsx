@@ -472,10 +472,10 @@ export default function DashboardPage() {
                   <CardTitle className="flex items-center justify-between">
                     <span>Historial de Reservas</span>
                     <Button size="sm" variant="outline" asChild>
-                      <a href="/reservas">
+                      <Link href="/reservas">
                         <Eye className="h-4 w-4 mr-2" />
                         Ver todas
-                      </a>
+                      </Link>
                     </Button>
                   </CardTitle>
                 </CardHeader>
@@ -548,10 +548,10 @@ export default function DashboardPage() {
                   <CardTitle className="flex items-center justify-between">
                     <span>Mis Consultorios</span>
                     <Button size="sm" variant="outline" asChild>
-                      <a href="/mis-consultorios">
+                      <Link href="/mis-consultorios">
                         <Eye className="h-4 w-4 mr-2" />
                         Ver todos
-                      </a>
+                      </Link>
                     </Button>
                   </CardTitle>
                 </CardHeader>
@@ -571,9 +571,9 @@ export default function DashboardPage() {
                               <span>{consultorio.reservasMes} reservas este mes</span>
                             </div>
                             <Button size="sm" variant="outline" asChild>
-                              <a href={`/mis-consultorios/${consultorio.id}`}>
+                              <Link href={`/mis-consultorios/${consultorio.id}`}>
                                 Gestionar
-                              </a>
+                              </Link>
                             </Button>
                           </div>
                         </div>
@@ -610,31 +610,31 @@ export default function DashboardPage() {
                       </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/favoritos">
+                      <Link href="/favoritos">
                         <Star className="h-6 w-6 mb-2" />
                         <span>Mis favoritos</span>
-                      </a>
+                      </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/reservas">
+                      <Link href="/reservas">
                         <Calendar className="h-6 w-6 mb-2" />
                         <span>Mis reservas</span>
-                      </a>
+                      </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/perfil">
+                      <Link href="/perfil">
                         <Users className="h-6 w-6 mb-2" />
                         <span>Mi perfil</span>
-                      </a>
+                      </Link>
                     </Button>
                   </>
                 ) : (
                   <>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/mis-consultorios">
+                      <Link href="/mis-consultorios">
                         <Building2 className="h-6 w-6 mb-2" />
                         <span>Mis consultorios</span>
-                      </a>
+                      </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
                       <Link href="/consultorios/crear">
@@ -643,22 +643,22 @@ export default function DashboardPage() {
                       </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/reservas">
+                      <Link href="/reservas">
                         <Calendar className="h-6 w-6 mb-2" />
                         <span>Gestionar reservas</span>
-                      </a>
+                      </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/ingresos">
+                      <Link href="/ingresos">
                         <DollarSign className="h-6 w-6 mb-2" />
                         <span>Ver ingresos</span>
-                      </a>
+                      </Link>
                     </Button>
                     <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <a href="/perfil">
+                      <Link href="/perfil">
                         <Users className="h-6 w-6 mb-2" />
                         <span>Mi perfil</span>
-                      </a>
+                      </Link>
                     </Button>
                   </>
                 )}

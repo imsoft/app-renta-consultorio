@@ -183,10 +183,10 @@ export default function ReservasPage() {
             </p>
           </div>
           <Button asChild className="mt-4 sm:mt-0">
-            <a href="/dashboard">
+                            <Link href="/dashboard">
               <Calendar className="h-4 w-4 mr-2" />
               Volver al Dashboard
-            </a>
+            </Link>
           </Button>
         </div>
 

@@ -28,7 +28,7 @@ export default function Footer() {
             <ul className="space-y-2 sm:space-y-3 text-muted-foreground">
               <li><Link href="/consultorios" className="hover:text-primary transition-colors text-sm sm:text-base">Buscar consultorios</Link></li>
               <li><Link href="/publicar-espacio" className="hover:text-primary transition-colors text-sm sm:text-base">Publicar espacio</Link></li>
-              <li><Link href="/reservas" className="hover:text-primary transition-colors text-sm sm:text-base">Reservas</Link></li>
+              <li><Link href="/consultorios/crear" className="hover:text-primary transition-colors text-sm sm:text-base">Publicar consultorio</Link></li>
               <li><Link href="/pagos-seguros" className="hover:text-primary transition-colors text-sm sm:text-base">Pagos seguros</Link></li>
             </ul>
           </div>

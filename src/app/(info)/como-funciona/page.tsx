@@ -240,7 +240,7 @@ export default function ComoFuncionaPage() {
 
           <div className="text-center mt-12">
             <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              <Link href="/registrar-consultorio">
+              <Link href="/consultorios/crear">
                 Registrar mi consultorio
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -403,7 +403,7 @@ export default function ComoFuncionaPage() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="border-background text-background bg-background/10 hover:bg-background hover:text-primary">
-              <Link href="/registrar-consultorio">
+              <Link href="/consultorios/crear">
                 Tengo un Consultorio
               </Link>
             </Button>

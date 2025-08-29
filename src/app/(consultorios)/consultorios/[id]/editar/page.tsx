@@ -984,7 +984,7 @@ export default function EditarConsultorioPage() {
                         </FormControl>
                         <FormLabel className="text-sm whitespace-nowrap">
                           Confirmo que la información es correcta y acepto los{" "}
-                          <Link href="/terminos" className="text-primary hover:text-primary/80">
+                          <Link href="/terminos-servicio" className="text-primary hover:text-primary/80">
                             términos y condiciones
                           </Link>
                         </FormLabel>
