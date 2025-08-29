@@ -311,13 +311,17 @@ export default function ConsultorioDetailPage({ params }: { params: Promise<{ id
                   {currentImages.length > 0 && currentImages[currentImageIndex] && validateImageUrl(currentImages[currentImageIndex]) ? (
                     <Image
                       src={currentImages[currentImageIndex]}
-                      alt={consultorio.titulo}
+                      alt={`${consultorio.titulo} - Imagen ${currentImageIndex + 1}`}
                       fill
                       className="object-cover rounded-t-lg"
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">
                       <Building className="h-24 w-24 text-muted-foreground" />
+                      <div className="text-center ml-4">
+                        <p className="text-muted-foreground font-medium">Sin imágenes</p>
+                        <p className="text-sm text-muted-foreground">Este consultorio aún no tiene fotos</p>
+                      </div>
                     </div>
                   )}
                   
@@ -326,7 +330,7 @@ export default function ConsultorioDetailPage({ params }: { params: Promise<{ id
                       <Button
                         variant="outline"
                         size="icon"
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur hover:bg-background"
                         onClick={prevImage}
                       >
                         <ChevronLeft className="h-4 w-4" />
@@ -334,14 +338,66 @@ export default function ConsultorioDetailPage({ params }: { params: Promise<{ id
                       <Button
                         variant="outline"
                         size="icon"
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-background/80 backdrop-blur hover:bg-background"
                         onClick={nextImage}
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>
+                      
+                      {/* Indicadores de imagen */}
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                        {currentImages.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-colors ${
+                              index === currentImageIndex 
+                                ? 'bg-white' 
+                                : 'bg-white/50 hover:bg-white/75'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Contador de imágenes */}
+                      <div className="absolute top-4 right-4 bg-black/70 text-white text-sm px-2 py-1 rounded">
+                        {currentImageIndex + 1} / {currentImages.length}
+                      </div>
                     </>
                   )}
                 </div>
+                
+                {/* Miniaturas */}
+                {currentImages.length > 1 && (
+                  <div className="p-4 border-t">
+                    <div className="flex space-x-2 overflow-x-auto">
+                      {currentImages.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                            index === currentImageIndex 
+                              ? 'border-primary' 
+                              : 'border-transparent hover:border-primary/50'
+                          }`}
+                        >
+                          {image && validateImageUrl(image) ? (
+                            <Image
+                              src={image}
+                              alt={`Miniatura ${index + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <Building className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
