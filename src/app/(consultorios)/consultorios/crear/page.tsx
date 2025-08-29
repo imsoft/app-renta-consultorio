@@ -41,6 +41,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useSupabaseStore } from "@/stores/supabaseStore";
 import Image from "next/image";
 import { DebugInfo } from "@/components/DebugInfo";
+import HorariosManager from "@/components/HorariosManager";
 
 // Schema de validación para el formulario de consultorio
 const consultorioSchema = z.object({
@@ -58,9 +59,43 @@ const consultorioSchema = z.object({
   especialidades: z.array(z.string()).min(1, "Selecciona al menos una especialidad"),
   servicios: z.array(z.string()).optional(),
   equipamiento: z.array(z.string()).optional(),
-  horario_apertura: z.string().optional(),
-  horario_cierre: z.string().optional(),
-  dias_disponibles: z.array(z.string()).optional(),
+  horarios: z.object({
+    lunes: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+    martes: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+    miercoles: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+    jueves: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+    viernes: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+    sabado: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+    domingo: z.object({
+      abierto: z.boolean(),
+      inicio: z.string().optional(),
+      fin: z.string().optional(),
+    }),
+  }),
   permite_mascotas: z.boolean().optional(),
   estacionamiento: z.boolean().optional(),
   wifi: z.boolean().optional(),
@@ -123,9 +158,7 @@ const estadosOptions = [
   "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"
 ];
 
-const diasSemana = [
-  "lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"
-];
+
 
 function CrearConsultorioPageContent() {
   const router = useRouter();
@@ -154,9 +187,15 @@ function CrearConsultorioPageContent() {
       especialidades: [],
       servicios: [],
       equipamiento: [],
-      horario_apertura: "08:00",
-      horario_cierre: "18:00",
-      dias_disponibles: ["lunes", "martes", "miercoles", "jueves", "viernes"],
+          horarios: {
+      lunes: { abierto: true, inicio: "08:00", fin: "18:00" },
+      martes: { abierto: true, inicio: "08:00", fin: "18:00" },
+      miercoles: { abierto: true, inicio: "08:00", fin: "18:00" },
+      jueves: { abierto: true, inicio: "08:00", fin: "18:00" },
+      viernes: { abierto: true, inicio: "08:00", fin: "18:00" },
+      sabado: { abierto: false, inicio: "", fin: "" },
+      domingo: { abierto: false, inicio: "", fin: "" }
+    },
       permite_mascotas: false,
       estacionamiento: false,
       wifi: true,
@@ -240,9 +279,7 @@ function CrearConsultorioPageContent() {
         especialidades: data.especialidades,
         servicios: data.servicios || [],
         equipamiento: data.equipamiento || [],
-        horario_apertura: data.horario_apertura,
-        horario_cierre: data.horario_cierre,
-        dias_disponibles: data.dias_disponibles || [],
+        horarios: data.horarios,
         permite_mascotas: data.permite_mascotas || false,
         estacionamiento: data.estacionamiento || false,
         wifi: data.wifi || false,
@@ -607,59 +644,19 @@ function CrearConsultorioPageContent() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="horario_apertura"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Horario de apertura</FormLabel>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="horario_cierre"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Horario de cierre</FormLabel>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
                   <FormField
                     control={form.control}
-                    name="dias_disponibles"
+                    name="horarios"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Días disponibles</FormLabel>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {diasSemana.map((dia) => (
-                            <div key={dia} className="flex items-center space-x-2">
-                              <Checkbox
-                                checked={field.value?.includes(dia)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    field.onChange([...(field.value || []), dia]);
-                                  } else {
-                                    field.onChange(field.value?.filter((d) => d !== dia));
-                                  }
-                                }}
-                              />
-                              <label className="text-sm capitalize">{dia}</label>
-                            </div>
-                          ))}
-                        </div>
+                        <FormLabel className="text-lg font-medium">Horarios de Disponibilidad</FormLabel>
+                        <FormControl>
+                          <HorariosManager
+                            horarios={field.value}
+                            onHorariosChange={field.onChange}
+                            duracionSlot={60}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

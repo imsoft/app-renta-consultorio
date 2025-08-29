@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/form";
 import { useAuthStore } from "@/stores/authStore";
 import Image from "next/image";
+import HorariosManager from "@/components/HorariosManager";
 
 // Schema de validación (mismo que crear consultorio)
 const consultorioSchema = z.object({
@@ -676,52 +677,23 @@ export default function EditarConsultorioPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Horarios */}
-                  <div>
-                    <h3 className="font-semibold mb-4">Horarios de disponibilidad</h3>
-                    <div className="space-y-3">
-                      {Object.entries(form.watch("horarios")).map(([dia, horario]) => (
-                        <div key={dia} className="flex items-center space-x-4 p-3 border rounded-lg">
-                          <div className="w-24">
-                            <span className="font-medium capitalize">
-                              {dia === 'miercoles' ? 'Miércoles' : 
-                               dia === 'sabado' ? 'Sábado' : 
-                               dia.charAt(0).toUpperCase() + dia.slice(1)}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              checked={horario.abierto}
-                              onCheckedChange={(checked) => {
-                                form.setValue(`horarios.${dia}.abierto` as keyof ConsultorioFormValues, checked as boolean);
-                              }}
-                            />
-                            <span className="text-sm">Abierto</span>
-                          </div>
-                          {horario.abierto && (
-                            <div className="flex items-center space-x-2">
-                              <Input
-                                type="time"
-                                className="w-32"
-                                value={horario.inicio || ""}
-                                onChange={(e) => {
-                                  form.setValue(`horarios.${dia}.inicio` as keyof ConsultorioFormValues, e.target.value);
-                                }}
-                              />
-                              <span>a</span>
-                              <Input
-                                type="time"
-                                className="w-32"
-                                value={horario.fin || ""}
-                                onChange={(e) => {
-                                  form.setValue(`horarios.${dia}.fin` as keyof ConsultorioFormValues, e.target.value);
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="horarios"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-lg font-medium">Horarios de Disponibilidad</FormLabel>
+                        <FormControl>
+                          <HorariosManager
+                            horarios={field.value}
+                            onHorariosChange={field.onChange}
+                            duracionSlot={60}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   {/* Equipamiento */}
                   <FormField
