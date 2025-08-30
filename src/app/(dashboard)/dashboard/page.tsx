@@ -12,6 +12,8 @@ import {
   Building2,
   Star,
   Eye,
+  Shield,
+  Settings,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useState } from "react";
@@ -666,6 +668,51 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Sección de Administración para usuarios admin */}
+        {user?.role === "admin" && (
+          <div className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="h-5 w-5 mr-2" />
+                  Panel de Administración
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                    <Link href="/admin/consultorios">
+                      <Building2 className="h-6 w-6 mb-2" />
+                      <span>Gestionar Consultorios</span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        Aprobar y administrar espacios
+                      </span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                    <Link href="/admin/security">
+                      <Shield className="h-6 w-6 mb-2" />
+                      <span>Seguridad</span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        Monitoreo y alertas
+                      </span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                    <Link href="/admin/users">
+                      <Users className="h-6 w-6 mb-2" />
+                      <span>Gestionar Usuarios</span>
+                      <span className="text-xs text-muted-foreground mt-1">
+                        Administrar cuentas
+                      </span>
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
   );

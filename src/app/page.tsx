@@ -65,7 +65,6 @@ export default function Home() {
         `
         )
         .eq("activo", true)
-        .eq("aprobado", true)
         .order("calificacion_promedio", { ascending: false })
         .limit(3);
 
