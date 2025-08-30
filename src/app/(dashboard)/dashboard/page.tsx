@@ -14,6 +14,7 @@ import {
   Eye,
   Shield,
   Settings,
+  Plus,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useState } from "react";
@@ -93,9 +94,9 @@ export default function DashboardPage() {
     try {
       setLoading(true);
 
-      if (user?.role === "professional") {
+      // Para todos los usuarios (excepto admin), mostrar todas las funciones
+      if (user?.role !== "admin") {
         await fetchProfessionalData();
-      } else if (user?.role === "owner") {
         await fetchOwnerData();
       }
     } catch (error) {
@@ -424,176 +425,98 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Contenido específico por tipo de usuario */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          {user?.role === "professional" ? (
-            <>
-              {/* Próxima reserva */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Próxima Reserva
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {dashboardData.proximaReserva ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-foreground">{dashboardData.proximaReserva.consultorio}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {dashboardData.proximaReserva.fecha} a las {dashboardData.proximaReserva.hora}
-                          </p>
-                        </div>
-                        <Badge variant="secondary">{dashboardData.proximaReserva.duracion}</Badge>
+        {/* Contenido para todos los usuarios */}
+        {user?.role !== "admin" && (
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Próxima reserva */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Próxima Reserva
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dashboardData.proximaReserva ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{dashboardData.proximaReserva.consultorio}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {dashboardData.proximaReserva.fecha} a las {dashboardData.proximaReserva.hora}
+                        </p>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          Ver detalles
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          Cancelar
-                        </Button>
-                      </div>
+                      <Badge variant="secondary">{dashboardData.proximaReserva.duracion}</Badge>
                     </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No tienes reservas próximas</p>
-                      <Button className="mt-4" asChild>
-                        <Link href="/consultorios">Buscar consultorios</Link>
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline">
+                        Ver detalles
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        Cancelar
                       </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Historial de reservas */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Historial de Reservas</span>
-                    <Button size="sm" variant="outline" asChild>
-                      <Link href="/reservas">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver todas
-                      </Link>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No tienes reservas próximas</p>
+                    <Button className="mt-4" asChild>
+                      <Link href="/consultorios">Buscar consultorios</Link>
                     </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {dashboardData.historialReservas.length > 0 ? (
-                    <div className="space-y-4">
-                      {dashboardData.historialReservas.map((reserva) => (
-                        <div key={reserva.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                          <div>
-                            <h4 className="font-medium text-foreground">{reserva.consultorio}</h4>
-                            <p className="text-sm text-muted-foreground">{reserva.fecha}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-foreground">${reserva.precio.toLocaleString()}</p>
-                            <Badge variant="outline" className="text-xs">{reserva.estado}</Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No hay reservas en el historial</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <>
-              {/* Próxima reserva */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Próxima Reserva
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {ownerDashboardData.proximaReserva ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-foreground">{ownerDashboardData.proximaReserva.consultorio}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {ownerDashboardData.proximaReserva.profesional} - {ownerDashboardData.proximaReserva.fecha} a las {ownerDashboardData.proximaReserva.hora}
-                          </p>
-                        </div>
-                        <Badge variant="secondary">{ownerDashboardData.proximaReserva.duracion}</Badge>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          Ver detalles
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          Contactar
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No tienes reservas próximas</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Mis consultorios */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Mis Consultorios</span>
-                    <Button size="sm" variant="outline" asChild>
-                      <Link href="/mis-consultorios">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver todos
-                      </Link>
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {ownerDashboardData.consultorios.length > 0 ? (
-                    <div className="space-y-4">
-                      {ownerDashboardData.consultorios.map((consultorio) => (
-                        <div key={consultorio.id} className="p-4 border border-border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-foreground">{consultorio.nombre}</h4>
-                            <Badge variant="secondary">{consultorio.ocupacion}% ocupado</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">{consultorio.ubicacion}</p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                              <span>${consultorio.precio}/hora</span>
-                              <span>{consultorio.reservasMes} reservas este mes</span>
-                            </div>
-                            <Button size="sm" variant="outline" asChild>
-                              <Link href={`/mis-consultorios/${consultorio.id}`}>
-                                Gestionar
-                              </Link>
-                            </Button>
-                          </div>
+            {/* Mis consultorios */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Mis Consultorios</span>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href="/mis-consultorios">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver todos
+                    </Link>
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ownerDashboardData.consultorios.length > 0 ? (
+                  <div className="space-y-4">
+                    {ownerDashboardData.consultorios.map((consultorio) => (
+                      <div key={consultorio.id} className="p-4 border border-border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-foreground">{consultorio.nombre}</h4>
+                          <Badge variant="secondary">{consultorio.ocupacion}% ocupado</Badge>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No tienes consultorios registrados</p>
-                      <Button className="mt-4" asChild>
-                        <Link href="/consultorios/crear">Crear consultorio</Link>
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{consultorio.ubicacion}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span>${consultorio.precio}/hora</span>
+                            <span>{consultorio.reservasMes} reservas este mes</span>
+                          </div>
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/mis-consultorios/${consultorio.id}`}>
+                              Gestionar
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No tienes consultorios registrados</p>
+                    <Button className="mt-4" asChild>
+                      <Link href="/consultorios/crear">Crear consultorio</Link>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Acciones rápidas */}
         <div className="mt-8">
@@ -602,68 +525,43 @@ export default function DashboardPage() {
               <CardTitle>Acciones Rápidas</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {user?.role === "professional" ? (
-                  <>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/consultorios">
-                        <Eye className="h-6 w-6 mb-2" />
-                        <span>Buscar consultorios</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/favoritos">
-                        <Star className="h-6 w-6 mb-2" />
-                        <span>Mis favoritos</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/reservas">
-                        <Calendar className="h-6 w-6 mb-2" />
-                        <span>Mis reservas</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/perfil">
-                        <Users className="h-6 w-6 mb-2" />
-                        <span>Mi perfil</span>
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/mis-consultorios">
-                        <Building2 className="h-6 w-6 mb-2" />
-                        <span>Mis consultorios</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/consultorios/crear">
-                        <Eye className="h-6 w-6 mb-2" />
-                        <span>Crear consultorio</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/reservas">
-                        <Calendar className="h-6 w-6 mb-2" />
-                        <span>Gestionar reservas</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/ingresos">
-                        <DollarSign className="h-6 w-6 mb-2" />
-                        <span>Ver ingresos</span>
-                      </Link>
-                    </Button>
-                    <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                      <Link href="/perfil">
-                        <Users className="h-6 w-6 mb-2" />
-                        <span>Mi perfil</span>
-                      </Link>
-                    </Button>
-                  </>
-                )}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/consultorios">
+                    <Eye className="h-6 w-6 mb-2" />
+                    <span>Buscar consultorios</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/favoritos">
+                    <Star className="h-6 w-6 mb-2" />
+                    <span>Mis favoritos</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/reservas">
+                    <Calendar className="h-6 w-6 mb-2" />
+                    <span>Mis reservas</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/mis-consultorios">
+                    <Building2 className="h-6 w-6 mb-2" />
+                    <span>Mis consultorios</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/consultorios/crear">
+                    <Plus className="h-6 w-6 mb-2" />
+                    <span>Crear consultorio</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/perfil">
+                    <Users className="h-6 w-6 mb-2" />
+                    <span>Mi perfil</span>
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -32,7 +32,6 @@ import {
 import { useSupabaseStore } from "@/stores/supabaseStore";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
@@ -42,7 +41,6 @@ const registroSchema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   apellido: z.string().min(2, "El apellido debe tener al menos 2 caracteres"),
   email: z.string().email("Ingresa un email válido"),
-  tipoUsuario: z.enum(["professional", "owner"]),
   password: z.string()
     .min(8, "La contraseña debe tener al menos 8 caracteres")
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "La contraseña debe contener al menos una mayúscula, una minúscula y un número"),
@@ -71,7 +69,6 @@ export default function RegistroPage() {
       nombre: "",
       apellido: "",
       email: "",
-      tipoUsuario: "professional",
       password: "",
       confirmPassword: "",
       aceptoTerminos: false,
@@ -85,7 +82,7 @@ export default function RegistroPage() {
     const { error } = await signUp(data.email, data.password, {
       nombre: data.nombre,
       apellidos: data.apellido,
-      role: data.tipoUsuario
+      role: "user"
     });
     
     if (error) {
@@ -246,42 +243,7 @@ export default function RegistroPage() {
                   )}
                 />
 
-                {/* Tipo de Usuario Field */}
-                <FormField
-                  control={form.control}
-                  name="tipoUsuario"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Usuario</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona tu tipo de usuario" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="professional">
-                            <div className="flex items-center space-x-2">
-                              <User className="h-4 w-4" />
-                              <span>Profesional de la Salud</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="owner">
-                            <div className="flex items-center space-x-2">
-                              <User className="h-4 w-4" />
-                              <span>Propietario de Consultorio</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="text-sm text-muted-foreground mt-2">
-                        <p><strong>Profesional de la Salud:</strong> Buscar y reservar consultorios</p>
-                        <p><strong>Propietario de Consultorio:</strong> Crear y gestionar espacios médicos</p>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
 
                 {/* Password Field */}
                 <FormField

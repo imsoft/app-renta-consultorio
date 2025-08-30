@@ -10,7 +10,7 @@ import Link from "next/link";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ("professional" | "owner" | "admin")[];
+  allowedRoles?: ("user" | "professional" | "owner" | "admin")[];
   redirectTo?: string;
 }
 

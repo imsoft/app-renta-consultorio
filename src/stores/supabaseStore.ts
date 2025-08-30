@@ -20,7 +20,7 @@ interface Profile {
   cedula_profesional?: string
   biografia?: string
   avatar_url?: string
-  role: 'professional' | 'owner' | 'admin'
+  role: 'user' | 'professional' | 'owner' | 'admin'
   verificado: boolean
   activo: boolean
   created_at: string
@@ -124,7 +124,7 @@ interface Calificacion {
 interface UserData {
   nombre: string
   apellidos: string
-  role?: 'professional' | 'owner' | 'admin'
+  role?: 'user' | 'professional' | 'owner' | 'admin'
 }
 
 interface ProfileUpdates {

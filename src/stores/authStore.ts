@@ -6,7 +6,7 @@ interface User {
   nombre: string;
   apellidos: string;
   email: string;
-  role: "professional" | "owner" | "admin";
+  role: "user" | "professional" | "owner" | "admin";
   avatar?: string | null;
 }
 
