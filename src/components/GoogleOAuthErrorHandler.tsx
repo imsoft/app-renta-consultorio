@@ -32,7 +32,7 @@ export default function GoogleOAuthErrorHandler({ children }: GoogleOAuthErrorHa
   }
 
   // Manejar errores específicos de OAuth
-  const handleOAuthError = async (error: string, description?: string) => {
+  const handleOAuthError = async (error: string, description?: string | null) => {
     setIsHandlingError(true)
     
     try {

@@ -15,7 +15,7 @@ export default function AutoFixOAuth({ children }: AutoFixOAuthProps) {
   const [fixAttempts, setFixAttempts] = useState(0)
   const router = useRouter()
   const { user: supabaseUser, session, setUser, setSession } = useSupabaseStore()
-  const { user: authUser, isAuthenticated, setUser: setAuthUser } = useAuthStore()
+  const { user: authUser, isAuthenticated, setUser: setAuthUser, clearUser } = useAuthStore()
 
   // Detectar problemas de sincronización
   const detectOAuthIssue = () => {
@@ -76,7 +76,7 @@ export default function AutoFixOAuth({ children }: AutoFixOAuthProps) {
           console.log('✅ AutoFix: Sesión de Supabase recuperada')
         } else {
           // Limpiar AuthStore si no hay sesión válida
-          setAuthUser(null)
+          clearUser()
           console.log('✅ AutoFix: AuthStore limpiado (no hay sesión válida)')
         }
       }
@@ -101,7 +101,7 @@ export default function AutoFixOAuth({ children }: AutoFixOAuthProps) {
         // Limpiar todo si no hay sesión válida
         setSession(null)
         setUser(null)
-        setAuthUser(null)
+        clearUser()
         console.log('✅ AutoFix: Sesión limpiada (no válida)')
       }
     } catch (error) {

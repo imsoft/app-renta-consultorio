@@ -4,9 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { AutoFixOAuth } from "@/components/AutoFixOAuth";
-import { BlankPageFix } from "@/components/BlankPageFix";
-import { GoogleOAuthErrorHandler } from "@/components/GoogleOAuthErrorHandler";
+import AutoFixOAuth from "@/components/AutoFixOAuth";
+import BlankPageFix from "@/components/BlankPageFix";
+import GoogleOAuthErrorHandler from "@/components/GoogleOAuthErrorHandler";
 import { Analytics } from "@vercel/analytics/next"
 
 // Deshabilitar prerender globalmente para evitar problemas con Supabase
