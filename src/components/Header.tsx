@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Menu, X } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -76,8 +76,7 @@ export default function Header() {
                   <Link href="/consultorios">Explorar Consultorios</Link>
                 </Button>
 
-                {/* Theme Toggle */}
-                <ThemeToggle />
+
 
                 {/* User Menu */}
                 <DropdownMenu>
@@ -164,10 +163,7 @@ export default function Header() {
                   <Link href="/consultorios">Explorar Consultorios</Link>
                 </Button>
                 
-                {/* Theme Toggle for Mobile */}
-                <div className="flex justify-start px-3 py-2">
-                  <ThemeToggle />
-                </div>
+
                 
                 <Button asChild variant="ghost" className="w-full justify-start">
                   <Link href="/perfil">Perfil</Link>
