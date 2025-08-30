@@ -115,6 +115,10 @@ export const useAuthStore = create<AuthStore>()(
           user: null, 
           isAuthenticated: false 
         });
+        // Limpiar localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('wellpoint-auth');
+        }
       },
 
       logout: () => {
@@ -122,6 +126,10 @@ export const useAuthStore = create<AuthStore>()(
           user: null, 
           isAuthenticated: false 
         });
+        // Limpiar localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('wellpoint-auth');
+        }
       },
     }),
     {
