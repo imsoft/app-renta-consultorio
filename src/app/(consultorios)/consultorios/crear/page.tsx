@@ -135,6 +135,7 @@ function CrearConsultorioPageContent() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [processingImages, setProcessingImages] = useState(false);
 
   const form = useForm<ConsultorioFormValues>({
     resolver: zodResolver(consultorioSchema),
@@ -179,21 +180,62 @@ function CrearConsultorioPageContent() {
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            newImages.push(e.target.result as string);
-            if (newImages.length === files.length) {
-              setUploadedImages(prev => [...prev, ...newImages]);
-            }
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+    if (!files || files.length === 0) return;
+
+    // Validar tipos de archivo
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type));
+    
+    if (invalidFiles.length > 0) {
+      setError(`Archivos no válidos: ${invalidFiles.map(f => f.name).join(', ')}. Solo se permiten JPG, PNG y WebP.`);
+      return;
     }
+
+    // Validar tamaño de archivos (5MB máximo)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const oversizedFiles = Array.from(files).filter(file => file.size > maxSize);
+    
+    if (oversizedFiles.length > 0) {
+      setError(`Archivos demasiado grandes: ${oversizedFiles.map(f => f.name).join(', ')}. El tamaño máximo es 5MB.`);
+      return;
+    }
+
+    // Limpiar errores previos
+    setError("");
+    setProcessingImages(true);
+
+    const newImages: string[] = [];
+    let processedFiles = 0;
+
+    Array.from(files).forEach((file, index) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          newImages.push(e.target.result as string);
+        }
+        processedFiles++;
+        
+        // Cuando todos los archivos han sido procesados
+        if (processedFiles === files.length) {
+          setUploadedImages(prev => [...prev, ...newImages]);
+          setProcessingImages(false);
+          console.log(`Se procesaron ${newImages.length} imágenes exitosamente`);
+        }
+      };
+
+      reader.onerror = () => {
+        console.error(`Error al leer el archivo: ${file.name}`);
+        setError(`Error al procesar la imagen: ${file.name}`);
+        setProcessingImages(false);
+        processedFiles++;
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    // Limpiar el input para permitir seleccionar el mismo archivo nuevamente
+    event.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -497,8 +539,10 @@ function CrearConsultorioPageContent() {
                             <Input 
                               type="number" 
                               placeholder="200"
-                              {...field}
+                              value={field.value}
                               onChange={(e) => field.onChange(Number(e.target.value))}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -516,8 +560,10 @@ function CrearConsultorioPageContent() {
                             <Input 
                               type="number" 
                               placeholder="1500"
-                              {...field}
+                              value={field.value || ''}
                               onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -535,8 +581,10 @@ function CrearConsultorioPageContent() {
                             <Input 
                               type="number" 
                               placeholder="30000"
-                              {...field}
+                              value={field.value || ''}
                               onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -556,8 +604,10 @@ function CrearConsultorioPageContent() {
                             <Input 
                               type="number" 
                               placeholder="20"
-                              {...field}
+                              value={field.value}
                               onChange={(e) => field.onChange(Number(e.target.value))}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -575,8 +625,10 @@ function CrearConsultorioPageContent() {
                             <Input 
                               type="number" 
                               placeholder="1"
-                              {...field}
+                              value={field.value}
                               onChange={(e) => field.onChange(Number(e.target.value))}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -823,6 +875,15 @@ function CrearConsultorioPageContent() {
                           Seleccionar imágenes
                         </Button>
                       </label>
+                      
+                      {processingImages && (
+                        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex items-center justify-center text-blue-700">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700 mr-2"></div>
+                            Procesando imágenes...
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {uploadedImages.length === 0 && (
