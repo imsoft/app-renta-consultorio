@@ -1004,7 +1004,7 @@ function CrearConsultorioPageContent() {
 // Wrapper dinámico para evitar problemas de prerender
 export default function CrearConsultorioPage() {
   return (
-    <ProtectedRoute allowedRoles={["owner"]} redirectTo="/dashboard">
+    <ProtectedRoute allowedRoles={["user", "admin"]} redirectTo="/dashboard">
       <CrearConsultorioPageContent />
     </ProtectedRoute>
   );

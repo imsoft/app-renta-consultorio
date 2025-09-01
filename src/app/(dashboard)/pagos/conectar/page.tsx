@@ -37,19 +37,14 @@ export default function ConectarStripePage() {
   const router = useRouter()
   const { user } = useAuthStore()
 
-  // Verificar que el usuario sea owner
+  // Verificar que el usuario esté autenticado
   useEffect(() => {
-    if (user && user.role !== 'owner') {
-      router.push('/dashboard')
-      return
-    }
-    
     if (user) {
       setEmail(user.email)
       setBusinessName(`${user.nombre} ${user.apellidos}`)
       checkAccountStatus()
     }
-  }, [user, router])
+  }, [user])
 
   const checkAccountStatus = async () => {
     try {

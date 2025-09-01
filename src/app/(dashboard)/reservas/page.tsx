@@ -82,10 +82,9 @@ export default function ReservasPage() {
         `);
 
       // Filtrar por tipo de usuario
-      if (user.role === "professional") {
-        query = query.eq('profesional_id', user.id);
-      } else if (user.role === "owner") {
-        query = query.eq('consultorios.propietario_id', user.id);
+      if (user.role === "user") {
+        // Los usuarios pueden ver tanto sus reservas como las de sus consultorios
+        query = query.or(`profesional_id.eq.${user.id},consultorios.propietario_id.eq.${user.id}`);
       }
 
       // Aplicar filtros
@@ -302,10 +301,7 @@ export default function ReservasPage() {
                             {reserva.consultorios?.nombre}
                           </h3>
                           <p className="text-muted-foreground">
-                            {user?.role === "professional" 
-                              ? `${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`
-                              : `${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`
-                            }
+                            {`${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`}
                           </p>
                         </div>
                         <Badge variant={getStatusBadgeVariant(reserva.estado)}>
@@ -335,7 +331,7 @@ export default function ReservasPage() {
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {user?.role === "professional" ? "Propietario" : "Profesional"}
+                            Usuario
                           </span>
                         </div>
                       </div>
@@ -387,16 +383,11 @@ export default function ReservasPage() {
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto" />
                   <h3 className="text-lg font-semibold text-foreground">No hay reservas</h3>
                   <p className="text-muted-foreground">
-                    {user?.role === "professional" 
-                      ? "No tienes reservas programadas. Busca consultorios disponibles."
-                      : "No hay reservas en tus consultorios."
-                    }
+                    No tienes reservas programadas. Busca consultorios disponibles.
                   </p>
-                                     {user?.role === "professional" && (
-                     <Button asChild>
-                       <Link href="/consultorios">Buscar consultorios</Link>
-                     </Button>
-                   )}
+                                                                          <Button asChild>
+                                       <Link href="/consultorios">Buscar consultorios</Link>
+                                     </Button>
                 </div>
               </CardContent>
             </Card>

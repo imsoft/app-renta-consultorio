@@ -52,7 +52,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email!,
             nombre: session.user.user_metadata?.nombre || nameParts[0] || '',
             apellidos: session.user.user_metadata?.apellidos || nameParts.slice(1).join(' ') || '',
-            role: (session.user.user_metadata?.role || profile?.role || 'professional') as 'professional' | 'owner' | 'admin',
+            role: (session.user.user_metadata?.role === 'admin' ? 'admin' : 'user') as 'user' | 'admin',
             avatar: session.user.user_metadata?.avatar_url || profile?.avatar_url || null,
           })
         }
@@ -89,7 +89,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
                 email: session.user.email,
                 full_name: session.user.user_metadata?.full_name || 
                           `${session.user.user_metadata?.nombre || ''} ${session.user.user_metadata?.apellidos || ''}`.trim(),
-                role: session.user.user_metadata?.role || 'professional',
+                role: session.user.user_metadata?.role === 'admin' ? 'admin' : 'user',
                 avatar_url: session.user.user_metadata?.avatar_url || null,
               }
               
@@ -111,7 +111,7 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
               email: session.user.email!,
               nombre: session.user.user_metadata?.nombre || nameParts[0] || '',
               apellidos: session.user.user_metadata?.apellidos || nameParts.slice(1).join(' ') || '',
-              role: (session.user.user_metadata?.role || profile?.role || 'professional') as 'professional' | 'owner' | 'admin',
+              role: (session.user.user_metadata?.role === 'admin' ? 'admin' : 'user') as 'user' | 'admin',
               avatar: session.user.user_metadata?.avatar_url || profile?.avatar_url || null,
             })
           } else if (event === 'SIGNED_OUT') {

@@ -122,8 +122,8 @@ export default function MisConsultoriosPage() {
   const [sortBy, setSortBy] = useState("nombre");
   const { user, isAuthenticated } = useAuthStore();
 
-  // Verificar si el usuario está autenticado y es propietario
-  if (!isAuthenticated || user?.role !== "owner") {
+  // Verificar si el usuario está autenticado
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background">
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -132,7 +132,7 @@ export default function MisConsultoriosPage() {
               <Building className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Acceso restringido</h2>
               <p className="text-muted-foreground mb-4">
-                Solo los propietarios pueden ver sus consultorios.
+                Debes iniciar sesión para ver tus consultorios.
               </p>
               <Button asChild>
                 <Link href="/login">Iniciar sesión</Link>

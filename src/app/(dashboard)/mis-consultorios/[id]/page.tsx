@@ -79,10 +79,7 @@ export default function GestionarConsultorioPage() {
       return;
     }
 
-    if (user?.role !== 'owner') {
-      router.push('/dashboard');
-      return;
-    }
+    // Todos los usuarios pueden gestionar sus consultorios
 
     fetchConsultorio();
     fetchReservas();

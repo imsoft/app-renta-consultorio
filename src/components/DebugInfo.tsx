@@ -42,7 +42,7 @@ export function DebugInfo({ show = false }: DebugInfoProps) {
             
             <div className="flex items-center gap-2">
               <span className="font-medium">Rol:</span>
-              <Badge variant={user.role === "owner" ? "default" : "secondary"}>
+              <Badge variant={user.role === "admin" ? "default" : "secondary"}>
                 {user.role}
               </Badge>
             </div>

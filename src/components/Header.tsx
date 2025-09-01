@@ -55,7 +55,7 @@ export default function Header() {
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 
-                {user?.role === "professional" && (
+                {user && (
                   <>
                     <Button asChild variant="ghost" className="text-primary hover:text-primary/80">
                       <Link href="/reservas">Reservas</Link>
@@ -65,7 +65,7 @@ export default function Header() {
                     </Button>
                   </>
                 )}
-                {user?.role === "owner" && (
+                {user && (
                   <>
                     <Button asChild variant="ghost" className="text-primary hover:text-primary/80">
                       <Link href="/reservas">Reservas</Link>
@@ -140,21 +140,13 @@ export default function Header() {
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 
-                {user?.role === "professional" && (
+                {user && (
                   <>
                     <Button asChild variant="ghost" className="w-full justify-start">
                       <Link href="/reservas">Reservas</Link>
                     </Button>
                     <Button asChild variant="ghost" className="w-full justify-start">
                       <Link href="/favoritos">Favoritos</Link>
-                    </Button>
-                  </>
-                )}
-                
-                {user?.role === "owner" && (
-                  <>
-                    <Button asChild variant="ghost" className="w-full justify-start">
-                      <Link href="/reservas">Reservas</Link>
                     </Button>
                     <Button asChild variant="ghost" className="w-full justify-start">
                       <Link href="/ingresos">Ingresos</Link>

@@ -60,7 +60,7 @@ export default function AutoFixOAuth({ children }: AutoFixOAuthProps) {
                   supabaseUser.user_metadata?.full_name?.split(' ')[0] || '',
           apellidos: supabaseUser.user_metadata?.apellidos || 
                     supabaseUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
-          role: (supabaseUser.user_metadata?.role || 'professional') as 'professional' | 'owner' | 'admin',
+          role: (supabaseUser.user_metadata?.role === 'admin' ? 'admin' : 'user') as 'user' | 'admin',
           avatar: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || null,
         }
         

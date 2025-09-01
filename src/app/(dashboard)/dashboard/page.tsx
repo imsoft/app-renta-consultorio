@@ -318,7 +318,7 @@ export default function DashboardPage() {
               Bienvenido, {user?.nombre}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {user?.role === "professional" ? "Panel de Profesional" : "Panel de Propietario"}
+              {user?.role === "admin" ? "Panel de Administrador" : "Panel de Usuario"}
             </p>
           </div>
         </div>
@@ -330,7 +330,7 @@ export default function DashboardPage() {
 
         {/* Estadísticas principales */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {user?.role === "professional" ? (
+          {user?.role === "user" ? (
             <>
               <Card>
                 <CardContent className="p-6">
@@ -514,18 +514,9 @@ export default function DashboardPage() {
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No tienes consultorios registrados</p>
-                    {user?.role === "owner" ? (
-                      <Button className="mt-4" asChild>
-                        <Link href="/consultorios/crear">Crear consultorio</Link>
-                      </Button>
-                    ) : (
-                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-blue-700 text-sm">
-                          Solo los propietarios pueden crear consultorios. 
-                          Si necesitas crear un consultorio, contacta a un administrador.
-                        </p>
-                      </div>
-                    )}
+                    <Button className="mt-4" asChild>
+                      <Link href="/consultorios/crear">Crear consultorio</Link>
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -565,14 +556,12 @@ export default function DashboardPage() {
                     <span>Mis consultorios</span>
                   </Link>
                 </Button>
-                {user?.role === "owner" && (
-                  <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                    <Link href="/consultorios/crear">
-                      <Plus className="h-6 w-6 mb-2" />
-                      <span>Crear consultorio</span>
-                    </Link>
-                  </Button>
-                )}
+                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                  <Link href="/consultorios/crear">
+                    <Plus className="h-6 w-6 mb-2" />
+                    <span>Crear consultorio</span>
+                  </Link>
+                </Button>
                 <Button variant="outline" className="h-auto p-4 flex-col" asChild>
                   <Link href="/perfil">
                     <Users className="h-6 w-6 mb-2" />

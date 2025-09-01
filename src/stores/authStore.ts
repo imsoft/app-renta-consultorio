@@ -6,7 +6,7 @@ interface User {
   nombre: string;
   apellidos: string;
   email: string;
-  role: "user" | "professional" | "owner" | "admin";
+  role: "user" | "admin";
   avatar?: string | null;
 }
 
@@ -15,8 +15,6 @@ interface RegisterData {
   apellido: string;
   email: string;
   password: string;
-  tipo: "profesional" | "propietario";
-  especialidad?: string;
 }
 
 interface AuthStore {
@@ -44,12 +42,12 @@ export const useAuthStore = create<AuthStore>()(
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Simular validación de credenciales
-        if (email === "doctor@test.com" && password === "password123") {
+        if (email === "usuario@test.com" && password === "password123") {
           const userData: User = {
             id: "1",
-            nombre: "Dr. Laura Martínez",
-            email: "doctor@test.com",
-            role: "professional",
+            nombre: "Laura Martínez",
+            email: "usuario@test.com",
+            role: "user",
             apellidos: "Martínez"
           };
           
@@ -59,12 +57,12 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false 
           });
           return true;
-        } else if (email === "propietario@test.com" && password === "password123") {
+        } else if (email === "admin@test.com" && password === "password123") {
           const userData: User = {
             id: "2",
             nombre: "Carlos Mendoza",
-            email: "propietario@test.com",
-            role: "owner",
+            email: "admin@test.com",
+            role: "admin",
             apellidos: "Mendoza"
           };
           
@@ -86,13 +84,13 @@ export const useAuthStore = create<AuthStore>()(
         // Simular delay de API
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Simular registro exitoso
+        // Simular registro exitoso - todos los usuarios registrados son "user" por defecto
         const newUser: User = {
           id: Date.now().toString(),
-          nombre: `${userData.nombre} ${userData.apellido}`,
+          nombre: userData.nombre,
           email: userData.email,
-                      role: userData.tipo === "profesional" ? "professional" : "owner",
-            apellidos: userData.apellido
+          role: "user",
+          apellidos: userData.apellido
         };
         
         set({ 

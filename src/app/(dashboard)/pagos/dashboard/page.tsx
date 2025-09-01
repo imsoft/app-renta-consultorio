@@ -67,10 +67,8 @@ export default function PaymentsDashboardPage() {
   const { user } = useAuthStore()
 
   useEffect(() => {
-    if (user?.role === 'owner') {
+    if (user) {
       fetchDashboardData()
-    } else {
-      router.push('/dashboard')
     }
   }, [user])
 

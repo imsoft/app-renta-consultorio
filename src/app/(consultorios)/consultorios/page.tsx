@@ -663,7 +663,7 @@ export default function ConsultoriosPage() {
                   ¡Únete a nosotros y ayuda a crear la primera comunidad de consultorios profesionales!
                 </p>
                 <div className="space-y-4">
-                  {user?.role === 'owner' ? (
+                  {user ? (
                     <Link href="/consultorios/crear">
                       <Button size="lg" className="w-full">
                         <Plus className="h-5 w-5 mr-2" />
@@ -673,7 +673,7 @@ export default function ConsultoriosPage() {
                   ) : (
                     <Link href="/registro">
                       <Button size="lg" className="w-full">
-                        Registrarme como propietario
+                        Registrarme para publicar
                       </Button>
                     </Link>
                   )}

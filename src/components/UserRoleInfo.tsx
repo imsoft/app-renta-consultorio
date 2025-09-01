@@ -26,32 +26,8 @@ export function UserRoleInfo({ className = "" }: UserRoleInfoProps) {
   const roleInfo = {
     user: {
       title: "Usuario",
-      description: "Puedes buscar y reservar consultorios",
+      description: "Puedes buscar, reservar y publicar consultorios",
       color: "bg-blue-100 text-blue-800",
-      actions: [
-        { icon: Eye, text: "Buscar consultorios", available: true },
-        { icon: Calendar, text: "Hacer reservas", available: true },
-        { icon: Star, text: "Guardar favoritos", available: true },
-        { icon: Plus, text: "Crear consultorio", available: false },
-        { icon: Building2, text: "Gestionar consultorios", available: false },
-      ]
-    },
-    professional: {
-      title: "Profesional",
-      description: "Puedes buscar, reservar y gestionar tus reservas",
-      color: "bg-green-100 text-green-800",
-      actions: [
-        { icon: Eye, text: "Buscar consultorios", available: true },
-        { icon: Calendar, text: "Hacer reservas", available: true },
-        { icon: Star, text: "Guardar favoritos", available: true },
-        { icon: Plus, text: "Crear consultorio", available: false },
-        { icon: Building2, text: "Gestionar consultorios", available: false },
-      ]
-    },
-    owner: {
-      title: "Propietario",
-      description: "Puedes crear, gestionar y administrar consultorios",
-      color: "bg-purple-100 text-purple-800",
       actions: [
         { icon: Eye, text: "Buscar consultorios", available: true },
         { icon: Calendar, text: "Hacer reservas", available: true },
@@ -121,14 +97,7 @@ export function UserRoleInfo({ className = "" }: UserRoleInfoProps) {
           </div>
         </div>
 
-        {user.role !== "owner" && user.role !== "admin" && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>¿Quieres crear consultorios?</strong> Contacta a un administrador 
-              para solicitar el cambio de rol a &quot;Propietario&quot;.
-            </p>
-          </div>
-        )}
+        {/* Todos los usuarios pueden crear consultorios, no se necesita mensaje adicional */}
       </CardContent>
     </Card>
   );

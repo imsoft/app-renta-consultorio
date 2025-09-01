@@ -392,7 +392,7 @@ export default function Home() {
                   ¡Publica el primer consultorio en WellPoint!
                 </p>
                 <div className="space-y-4">
-                  {user?.role === "owner" ? (
+                  {user ? (
                     <Link href="/consultorios/crear">
                       <Button size="lg" className="w-full">
                         <Plus className="h-5 w-5 mr-2" />
@@ -402,7 +402,7 @@ export default function Home() {
                   ) : (
                     <Link href="/registro">
                       <Button size="lg" className="w-full">
-                        Registrarme como propietario
+                        Registrarme para publicar
                       </Button>
                     </Link>
                   )}
