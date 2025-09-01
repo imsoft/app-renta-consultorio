@@ -42,6 +42,7 @@ import { useSupabaseStore } from "@/stores/supabaseStore";
 import Image from "next/image";
 import { DebugInfo } from "@/components/DebugInfo";
 import HorariosManager from "@/components/HorariosManager";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Schema de validación para el formulario de consultorio
 const consultorioSchema = z.object({
@@ -209,12 +210,7 @@ function CrearConsultorioPageContent() {
       router.push('/login');
       return;
     }
-    
-    if (user?.role !== "owner") {
-      router.push('/dashboard');
-      return;
-    }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, router]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -258,11 +254,7 @@ function CrearConsultorioPageContent() {
         return;
       }
 
-      // Validar que el usuario tenga el rol correcto
-      if (user.role !== "owner") {
-        setError("Solo los propietarios pueden crear consultorios.");
-        return;
-      }
+      // La validación de rol ya se hace en ProtectedRoute
 
       const consultorioData = {
         titulo: data.titulo,
@@ -323,23 +315,7 @@ function CrearConsultorioPageContent() {
     }
   };
 
-  if (!isAuthenticated || user?.role !== "owner") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Acceso restringido
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Solo los propietarios pueden crear consultorios.
-          </p>
-          <Link href="/dashboard">
-            <Button>Ir al Dashboard</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // La validación de rol ya se hace en ProtectedRoute
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1027,5 +1003,9 @@ function CrearConsultorioPageContent() {
 
 // Wrapper dinámico para evitar problemas de prerender
 export default function CrearConsultorioPage() {
-  return <CrearConsultorioPageContent />;
+  return (
+    <ProtectedRoute allowedRoles={["owner"]} redirectTo="/dashboard">
+      <CrearConsultorioPageContent />
+    </ProtectedRoute>
+  );
 }

@@ -20,6 +20,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { UserRoleInfo } from "@/components/UserRoleInfo";
 
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
@@ -322,6 +323,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Información del rol del usuario */}
+        <div className="mb-8">
+          <UserRoleInfo />
+        </div>
+
         {/* Estadísticas principales */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {user?.role === "professional" ? (
@@ -508,9 +514,18 @@ export default function DashboardPage() {
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No tienes consultorios registrados</p>
-                    <Button className="mt-4" asChild>
-                      <Link href="/consultorios/crear">Crear consultorio</Link>
-                    </Button>
+                    {user?.role === "owner" ? (
+                      <Button className="mt-4" asChild>
+                        <Link href="/consultorios/crear">Crear consultorio</Link>
+                      </Button>
+                    ) : (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-blue-700 text-sm">
+                          Solo los propietarios pueden crear consultorios. 
+                          Si necesitas crear un consultorio, contacta a un administrador.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -550,12 +565,14 @@ export default function DashboardPage() {
                     <span>Mis consultorios</span>
                   </Link>
                 </Button>
-                <Button variant="outline" className="h-auto p-4 flex-col" asChild>
-                  <Link href="/consultorios/crear">
-                    <Plus className="h-6 w-6 mb-2" />
-                    <span>Crear consultorio</span>
-                  </Link>
-                </Button>
+                {user?.role === "owner" && (
+                  <Button variant="outline" className="h-auto p-4 flex-col" asChild>
+                    <Link href="/consultorios/crear">
+                      <Plus className="h-6 w-6 mb-2" />
+                      <span>Crear consultorio</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="outline" className="h-auto p-4 flex-col" asChild>
                   <Link href="/perfil">
                     <Users className="h-6 w-6 mb-2" />
