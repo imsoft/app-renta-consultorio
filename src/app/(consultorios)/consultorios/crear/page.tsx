@@ -108,47 +108,12 @@ const consultorioSchema = z.object({
 
 type ConsultorioFormValues = z.infer<typeof consultorioSchema>;
 
-// Opciones para selects
-const especialidadesOptions = [
-  "Medicina General",
-  "Cardiología",
-  "Dermatología",
-  "Ginecología",
-  "Pediatría",
-  "Neurología",
-  "Oftalmología",
-  "Traumatología",
-  "Psiquiatría",
-  "Psicología",
-  "Odontología",
-  "Nutrición",
-  "Fisioterapia",
-];
+// Opciones para selects (se pueden expandir según las necesidades reales)
+const especialidadesOptions: string[] = [];
 
-const serviciosOptions = [
-  "Consulta médica",
-  "Procedimientos menores",
-  "Análisis clínicos",
-  "Electrocardiograma",
-  "Ultrasonido",
-  "Rayos X",
-  "Limpieza dental",
-  "Terapia física",
-  "Consulta nutricional",
-];
+const serviciosOptions: string[] = [];
 
-const equipamientoOptions = [
-  "Camilla médica",
-  "Escritorio",
-  "Sillas",
-  "Equipo de diagnóstico",
-  "Esterilizador",
-  "Báscula",
-  "Tensiómetro",
-  "Estetoscopio",
-  "Lámpara de exploración",
-  "Instrumental básico",
-];
+const equipamientoOptions: string[] = [];
 
 const estadosOptions = [
   "Aguascalientes", "Baja California", "Baja California Sur", "Campeche",

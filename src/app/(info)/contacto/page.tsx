@@ -79,27 +79,15 @@ const faqsContacto = [
   }
 ];
 
-// Equipo de soporte
-const equipoSoporte = [
-  {
-    nombre: "Ana García",
-    cargo: "Soporte Técnico",
-    especialidad: "Registro y verificación",
-    icono: Users
-  },
-  {
-    nombre: "Carlos Mendoza",
-    cargo: "Atención al Cliente",
-    especialidad: "Reservas y pagos",
-    icono: Star
-  },
-  {
-    nombre: "María López",
-    cargo: "Coordinadora",
-    especialidad: "Consultas generales",
-    icono: CheckCircle
-  }
-];
+// Equipo de soporte (se puede expandir según el equipo real)
+interface MiembroEquipo {
+  nombre: string;
+  cargo: string;
+  especialidad: string;
+  icono: React.ComponentType<{ className?: string }>;
+}
+
+const equipoSoporte: MiembroEquipo[] = [];
 
 export default function ContactoPage() {
   return (

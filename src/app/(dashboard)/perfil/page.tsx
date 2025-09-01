@@ -59,57 +59,33 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-// Datos simulados del perfil del usuario
+// Función para obtener datos del perfil del usuario (vacío por defecto)
 const getProfileData = (userType: string) => {
-  if (userType === "profesional") {
-    return {
-      nombre: "María",
-      apellidos: "González López",
-              email: "maria.gonzalez@wellpoint.com",
-      telefono: "+52 55 9876 5432",
-      fechaNacimiento: "1985-03-15",
-      direccion: "Av. Insurgentes Sur 1234",
-      ciudad: "Ciudad de México",
-      codigoPostal: "03800",
-      especialidad: "Cardiología",
-      experiencia: "15 años de experiencia en cardiología intervencionista",
-      cedula: "CARD-123456",
-      descripcion: "Cardióloga especializada en cardiología intervencionista con más de 15 años de experiencia. Me dedico a proporcionar atención cardiovascular integral y personalizada.",
-      whatsapp: true,
-      notificacionesEmail: true,
-      notificacionesSMS: false,
-      tipo: "profesional",
-      fechaRegistro: "2023-01-15",
-      consultoriosVisitados: 8,
-      reservasRealizadas: 24,
-      calificacionPromedio: 4.9,
-      reseñasRecibidas: 18
-    };
-  } else {
-    return {
-      nombre: "Carlos",
-      apellidos: "Mendoza Ruiz",
-              email: "carlos.mendoza@wellpoint.com",
-      telefono: "+52 55 1234 5678",
-      fechaNacimiento: "1978-07-22",
-      direccion: "Calle Reforma 567",
-      ciudad: "Ciudad de México",
-      codigoPostal: "06500",
-      especialidad: "",
-      experiencia: "",
-      cedula: "",
-      descripcion: "Propietario de espacios médicos con más de 5 años de experiencia en el sector inmobiliario médico. Me especializo en proporcionar espacios profesionales y bien equipados para profesionales de la salud.",
-      whatsapp: true,
-      notificacionesEmail: true,
-      notificacionesSMS: true,
-      tipo: "propietario",
-      fechaRegistro: "2022-06-10",
-      consultoriosRegistrados: 4,
-      ingresosTotales: 125000,
-      calificacionPromedio: 4.8,
-      reseñasRecibidas: 32
-    };
-  }
+  return {
+    nombre: "",
+    apellidos: "",
+    email: "",
+    telefono: "",
+    fechaNacimiento: "",
+    direccion: "",
+    ciudad: "",
+    codigoPostal: "",
+    especialidad: "",
+    experiencia: "",
+    cedula: "",
+    descripcion: "",
+    whatsapp: false,
+    notificacionesEmail: false,
+    notificacionesSMS: false,
+    tipo: "user",
+    fechaRegistro: "",
+    consultoriosVisitados: 0,
+    reservasRealizadas: 0,
+    calificacionPromedio: 0,
+    reseñasRecibidas: 0,
+    consultoriosRegistrados: 0,
+    ingresosTotales: 0
+  };
 };
 
 // Componente para mostrar el mensaje de acceso restringido

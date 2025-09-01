@@ -64,101 +64,23 @@ interface ResumenFinanciero {
   pendientesCobro: number;
 }
 
-// Datos simulados de ingresos
+// Datos vacíos para cuando no hay ingresos
 const ingresosData = {
   resumen: {
-    ingresosHoy: 4800,
-    ingresosMes: 15600,
-    ingresosAnio: 187200,
-    transaccionesHoy: 6,
-    transaccionesMes: 24,
-    promedioTransaccion: 650,
-    consultorioMasRentable: "Consultorio Médico Central",
-    tendenciaMes: 12.5,
-    pendientesCobro: 2400
+    ingresosHoy: 0,
+    ingresosMes: 0,
+    ingresosAnio: 0,
+    transaccionesHoy: 0,
+    transaccionesMes: 0,
+    promedioTransaccion: 0,
+    consultorioMasRentable: "",
+    tendenciaMes: 0,
+    pendientesCobro: 0
   } as ResumenFinanciero,
   
-  estadisticasMensuales: [
-    { mes: "Ene", ingresos: 12800, transacciones: 20, ocupacion: 75 },
-    { mes: "Feb", ingresos: 14200, transacciones: 22, ocupacion: 80 },
-    { mes: "Mar", ingresos: 13900, transacciones: 21, ocupacion: 78 },
-    { mes: "Abr", ingresos: 15600, transacciones: 24, ocupacion: 85 },
-    { mes: "May", ingresos: 16800, transacciones: 26, ocupacion: 88 },
-    { mes: "Jun", ingresos: 15200, transacciones: 23, ocupacion: 82 }
-  ] as EstadisticaIngreso[],
+  estadisticasMensuales: [] as EstadisticaIngreso[],
   
-  transacciones: [
-    {
-      id: 1,
-      fecha: "2024-01-25",
-      hora: "14:00",
-      consultorio: "Consultorio Médico Central",
-      profesional: "Dr. Laura Martínez",
-      duracion: "2 horas",
-      monto: 1600,
-      comision: 160,
-      montoNeto: 1440,
-      estado: "completada",
-      metodoPago: "Tarjeta de Crédito",
-      concepto: "Renta de consultorio"
-    },
-    {
-      id: 2,
-      fecha: "2024-01-25",
-      hora: "10:00",
-      consultorio: "Clínica Especializada Norte",
-      profesional: "Dra. Ana García",
-      duracion: "1 hora",
-      monto: 1200,
-      comision: 120,
-      montoNeto: 1080,
-      estado: "completada",
-      metodoPago: "Transferencia",
-      concepto: "Renta de consultorio"
-    },
-    {
-      id: 3,
-      fecha: "2024-01-24",
-      hora: "16:00",
-      consultorio: "Consultorio Médico Central",
-      profesional: "Dr. Carlos López",
-      duracion: "3 horas",
-      monto: 2400,
-      comision: 240,
-      montoNeto: 2160,
-      estado: "pendiente",
-      metodoPago: "Efectivo",
-      concepto: "Renta de consultorio"
-    },
-    {
-      id: 4,
-      fecha: "2024-01-24",
-      hora: "09:00",
-      consultorio: "Clínica Especializada Norte",
-      profesional: "Dra. María Rodríguez",
-      duracion: "1.5 horas",
-      monto: 1800,
-      comision: 180,
-      montoNeto: 1620,
-      estado: "completada",
-      metodoPago: "Tarjeta de Débito",
-      concepto: "Renta de consultorio"
-    },
-    {
-      id: 5,
-      fecha: "2024-01-23",
-      hora: "11:00",
-      consultorio: "Consultorio Médico Central",
-      profesional: "Dr. Roberto Silva",
-      duracion: "2 horas",
-      monto: 1600,
-      comision: 160,
-      montoNeto: 1440,
-      estado: "completada",
-      metodoPago: "Transferencia",
-      concepto: "Renta de consultorio"
-    }
-  ] as Transaccion[]
+  transacciones: [] as Transaccion[]
 };
 
 export default function IngresosPage() {

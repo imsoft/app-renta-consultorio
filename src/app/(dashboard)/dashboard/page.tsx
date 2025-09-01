@@ -20,7 +20,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { UserRoleInfo } from "@/components/UserRoleInfo";
+
 
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
@@ -323,10 +323,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Información del rol del usuario */}
-        <div className="mb-8">
-          <UserRoleInfo />
-        </div>
+
 
         {/* Estadísticas principales */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

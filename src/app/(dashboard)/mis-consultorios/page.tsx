@@ -48,73 +48,25 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
 
-// Datos simulados de consultorios del propietario
-const misConsultorios = [
-  {
-    id: 1,
-    nombre: "Consultorio Médico Central",
-    ubicacion: "Centro Histórico, CDMX",
-    precio: 800,
-    calificacion: 4.8,
-    reseñas: 124,
-    estado: "activo",
-    reservasMes: 12,
-    ingresosMes: 9600,
-    ultimaReserva: "2024-01-20",
-    proximaReserva: "2024-01-25",
-    especialidades: ["Medicina General", "Cardiología", "Dermatología"],
-    ocupacion: 85,
-    verificado: true
-  },
-  {
-    id: 2,
-    nombre: "Clínica Especializada Norte",
-    ubicacion: "Polanco, CDMX",
-    precio: 1200,
-    calificacion: 4.9,
-    reseñas: 89,
-    estado: "activo",
-    reservasMes: 8,
-    ingresosMes: 9600,
-    ultimaReserva: "2024-01-18",
-    proximaReserva: "2024-01-26",
-    especialidades: ["Dermatología", "Oftalmología"],
-    ocupacion: 70,
-    verificado: true
-  },
-  {
-    id: 3,
-    nombre: "Consultorio Familiar Sur",
-    ubicacion: "Coyoacán, CDMX",
-    precio: 600,
-    calificacion: 4.7,
-    reseñas: 156,
-    estado: "inactivo",
-    reservasMes: 0,
-    ingresosMes: 0,
-    ultimaReserva: "2024-01-10",
-    proximaReserva: null,
-    especialidades: ["Pediatría", "Ginecología"],
-    ocupacion: 0,
-    verificado: true
-  },
-  {
-    id: 4,
-    nombre: "Centro Médico Integral Este",
-    ubicacion: "Iztapalapa, CDMX",
-    precio: 500,
-    calificacion: 4.6,
-    reseñas: 203,
-    estado: "pendiente",
-    reservasMes: 0,
-    ingresosMes: 0,
-    ultimaReserva: null,
-    proximaReserva: null,
-    especialidades: ["Medicina General", "Fisioterapia"],
-    ocupacion: 0,
-    verificado: false
-  }
-];
+// Array vacío para cuando no hay consultorios
+interface ConsultorioBasico {
+  id: number;
+  nombre: string;
+  ubicacion: string;
+  precio: number;
+  calificacion: number;
+  reseñas: number;
+  estado: string;
+  reservasMes: number;
+  ingresosMes: number;
+  ultimaReserva: string | null;
+  proximaReserva: string | null;
+  especialidades: string[];
+  ocupacion: number;
+  verificado: boolean;
+}
+
+const misConsultorios: ConsultorioBasico[] = [];
 
 export default function MisConsultoriosPage() {
   const [searchTerm, setSearchTerm] = useState("");

@@ -283,15 +283,7 @@ export default function FavoritosPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todas">Todas las especialidades</SelectItem>
-                  <SelectItem value="Cardiología">Cardiología</SelectItem>
-                  <SelectItem value="Dermatología">Dermatología</SelectItem>
-                  <SelectItem value="Ortopedia">Ortopedia</SelectItem>
-                  <SelectItem value="Pediatría">Pediatría</SelectItem>
-                  <SelectItem value="Ginecología">Ginecología</SelectItem>
-                  <SelectItem value="Neurología">Neurología</SelectItem>
-                  <SelectItem value="Oftalmología">Oftalmología</SelectItem>
-                  <SelectItem value="Fisioterapia">Fisioterapia</SelectItem>
-                  <SelectItem value="Nutrición">Nutrición</SelectItem>
+
                 </SelectContent>
               </Select>
               <Select value={precioFilter} onValueChange={setPrecioFilter}>

@@ -153,47 +153,9 @@ const serviciosDisponibles = [
   { id: "calefaccion", nombre: "Calefacción", descripcion: "Sistema de calefacción" }
 ];
 
-// Datos simulados del consultorio a editar
+// Función para obtener datos del consultorio (vacía por defecto)
 const getConsultorioData = (id: string) => {
-  const consultorios = {
-    "1": {
-      id: 1,
-      nombre: "Consultorio Médico Central",
-      descripcion: "Consultorio médico completamente equipado ubicado en el corazón del Centro Histórico. Ideal para médicos generales y especialistas que buscan un espacio profesional y accesible.",
-      direccion: "Av. Juárez 123, Centro Histórico",
-      colonia: "Centro Histórico",
-      ciudad: "Ciudad de México",
-      codigoPostal: "06000",
-      precio: 800,
-      capacidad: 2,
-      especialidades: ["Medicina General", "Cardiología", "Dermatología"],
-      horarios: {
-        lunes: { abierto: true, inicio: "08:00", fin: "18:00" },
-        martes: { abierto: true, inicio: "08:00", fin: "18:00" },
-        miercoles: { abierto: true, inicio: "08:00", fin: "18:00" },
-        jueves: { abierto: true, inicio: "08:00", fin: "18:00" },
-        viernes: { abierto: true, inicio: "08:00", fin: "18:00" },
-        sabado: { abierto: false, inicio: "09:00", fin: "14:00" },
-        domingo: { abierto: false, inicio: "", fin: "" },
-      },
-      equipamiento: ["Sala de espera", "Consultorio privado", "Baño privado", "Sistema de aire acondicionado"],
-      servicios: ["wifi", "estacionamiento", "accesibilidad"],
-      politicas: {
-        reservaMinima: 2,
-        cancelacionGratuita: true,
-        horasCancelacion: 24,
-        seguroIncluido: true,
-      },
-      contacto: {
-        telefono: "+52 55 1234 5678",
-        email: "carlos.mendoza@wellpoint.com",
-        whatsapp: true,
-      },
-      propietario: "Carlos Mendoza"
-    }
-  };
-  
-  return consultorios[id as keyof typeof consultorios] || null;
+  return null;
 };
 
 export default function EditarConsultorioPage() {
@@ -255,29 +217,8 @@ export default function EditarConsultorioPage() {
       
       const data = getConsultorioData(params.id as string);
       
-      if (data) {
-        const consultorioWithTerminos = { ...data, terminos: true };
-        setConsultorioData(consultorioWithTerminos);
-        form.reset({
-          nombre: data.nombre,
-          descripcion: data.descripcion,
-          direccion: data.direccion,
-          colonia: data.colonia,
-          ciudad: data.ciudad,
-          codigoPostal: data.codigoPostal,
-          precio: data.precio,
-          capacidad: data.capacidad,
-          especialidades: data.especialidades,
-          horarios: data.horarios,
-          equipamiento: data.equipamiento,
-          servicios: data.servicios,
-          politicas: data.politicas,
-          contacto: data.contacto,
-          terminos: true,
-        });
-      } else {
-        setError("Consultorio no encontrado");
-      }
+      // Como no hay datos de ejemplo, simplemente establecemos el estado de carga
+      setIsLoading(false);
       
       setIsLoading(false);
     };
