@@ -996,12 +996,15 @@ function CrearConsultorioPageContent() {
                         className="hidden"
                         id="image-upload"
                       />
-                      <label htmlFor="image-upload">
-                        <Button type="button" variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Seleccionar imágenes
-                        </Button>
-                      </label>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Seleccionar imágenes
+                      </Button>
                       
                       {processingImages && (
                         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
