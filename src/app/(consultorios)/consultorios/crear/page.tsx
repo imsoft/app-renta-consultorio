@@ -501,19 +501,30 @@ function CrearConsultorioPageContent() {
                   step < 4 ? "flex-1" : ""
                 }`}
               >
-                <div
-                  className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                <button
+                  onClick={() => setCurrentStep(step)}
+                  disabled={step > currentStep + 1} // Solo permitir ir a pasos anteriores o al siguiente
+                  className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-200 ${
                     currentStep >= step
-                      ? "bg-primary border-primary text-white"
-                      : "border-gray-300 text-gray-300"
+                      ? "bg-primary border-primary text-white hover:bg-primary/90 cursor-pointer"
+                      : step <= currentStep + 1
+                      ? "border-gray-400 text-gray-400 hover:border-gray-500 hover:text-gray-500 cursor-pointer"
+                      : "border-gray-300 text-gray-300 cursor-not-allowed opacity-50"
                   }`}
+                  title={
+                    step > currentStep + 1
+                      ? "Completa el paso anterior primero"
+                      : step === currentStep
+                      ? "Paso actual"
+                      : `Ir al paso ${step}`
+                  }
                 >
                   {currentStep > step ? (
                     <CheckCircle className="h-5 w-5" />
                   ) : (
                     step
                   )}
-                </div>
+                </button>
                 {step < 4 && (
                   <div
                     className={`flex-1 h-0.5 ml-4 ${
@@ -525,10 +536,50 @@ function CrearConsultorioPageContent() {
             ))}
           </div>
           <div className="flex justify-between text-sm text-gray-500 mt-2">
-            <span>Información básica</span>
-            <span>Detalles</span>
-            <span>Servicios</span>
-            <span>Imágenes</span>
+            <button
+              onClick={() => setCurrentStep(1)}
+              disabled={1 > currentStep + 1}
+              className={`transition-colors duration-200 ${
+                1 <= currentStep + 1
+                  ? "hover:text-primary cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }`}
+            >
+              Información básica
+            </button>
+            <button
+              onClick={() => setCurrentStep(2)}
+              disabled={2 > currentStep + 1}
+              className={`transition-colors duration-200 ${
+                2 <= currentStep + 1
+                  ? "hover:text-primary cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }`}
+            >
+              Detalles
+            </button>
+            <button
+              onClick={() => setCurrentStep(3)}
+              disabled={3 > currentStep + 1}
+              className={`transition-colors duration-200 ${
+                3 <= currentStep + 1
+                  ? "hover:text-primary cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }`}
+            >
+              Servicios
+            </button>
+            <button
+              onClick={() => setCurrentStep(4)}
+              disabled={4 > currentStep + 1}
+              className={`transition-colors duration-200 ${
+                4 <= currentStep + 1
+                  ? "hover:text-primary cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }`}
+            >
+              Imágenes
+            </button>
           </div>
         </div>
 
