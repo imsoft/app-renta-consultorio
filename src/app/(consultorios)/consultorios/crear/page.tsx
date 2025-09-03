@@ -253,58 +253,77 @@ function CrearConsultorioPageContent() {
 
     // Limpiar errores previos
     setError("");
+    setSuccess("");
     setProcessingImages(true);
     console.log('Iniciando procesamiento de imágenes...');
 
     const newImages: string[] = [];
     let processedFiles = 0;
     let errorCount = 0;
+    const totalFiles = files.length;
 
+    // Función para verificar si todos los archivos han sido procesados
+    const checkCompletion = () => {
+      if (processedFiles === totalFiles) {
+        console.log(`Procesamiento completado. ${newImages.length} exitosos, ${errorCount} errores`);
+        setProcessingImages(false);
+        
+        if (newImages.length > 0) {
+          setUploadedImages(prev => [...prev, ...newImages]);
+          if (errorCount === 0) {
+            setSuccess(`Se subieron ${newImages.length} imágenes correctamente`);
+          } else {
+            setSuccess(`Se subieron ${newImages.length} imágenes correctamente (${errorCount} fallaron)`);
+          }
+        } else {
+          setError('No se pudo procesar ninguna imagen. Por favor, intenta de nuevo.');
+        }
+      }
+    };
+
+    // Procesar cada archivo
     Array.from(files).forEach((file, index) => {
       console.log(`Procesando archivo ${index + 1}: ${file.name} (${file.size} bytes, tipo: ${file.type})`);
       
       const reader = new FileReader();
       
       reader.onload = (e) => {
-        if (e.target?.result) {
-          newImages.push(e.target.result as string);
-          console.log(`Archivo ${file.name} procesado exitosamente`);
-        } else {
-          console.error(`No se pudo leer el contenido del archivo: ${file.name}`);
+        try {
+          if (e.target?.result) {
+            newImages.push(e.target.result as string);
+            console.log(`Archivo ${file.name} procesado exitosamente`);
+          } else {
+            console.error(`No se pudo leer el contenido del archivo: ${file.name}`);
+            errorCount++;
+          }
+        } catch (error) {
+          console.error(`Error procesando archivo ${file.name}:`, error);
           errorCount++;
         }
-        processedFiles++;
         
-        // Cuando todos los archivos han sido procesados
-        if (processedFiles === files.length) {
-          if (errorCount === 0) {
-            setUploadedImages(prev => [...prev, ...newImages]);
-            console.log(`Se procesaron ${newImages.length} imágenes exitosamente`);
-            setSuccess(`Se subieron ${newImages.length} imágenes correctamente`);
-          } else {
-            console.warn(`${errorCount} archivos tuvieron errores durante el procesamiento`);
-            if (newImages.length > 0) {
-              setUploadedImages(prev => [...prev, ...newImages]);
-              setSuccess(`Se subieron ${newImages.length} imágenes correctamente (${errorCount} fallaron)`);
-            }
-          }
-          setProcessingImages(false);
-        }
+        processedFiles++;
+        checkCompletion();
       };
 
       reader.onerror = (error) => {
         console.error(`Error al leer el archivo ${file.name}:`, error);
-        setError(`Error al procesar la imagen: ${file.name}`);
         errorCount++;
         processedFiles++;
-        
-        if (processedFiles === files.length) {
-          setProcessingImages(false);
-          if (newImages.length > 0) {
-            setUploadedImages(prev => [...prev, ...newImages]);
-            setSuccess(`Se subieron ${newImages.length} imágenes correctamente (${errorCount} fallaron)`);
-          }
+        checkCompletion();
+      };
+
+      // Agregar timeout de seguridad para evitar que se quede colgado
+      const timeout = setTimeout(() => {
+        if (processedFiles <= index) { // Solo si este archivo específico no se ha procesado
+          console.warn(`Timeout procesando archivo ${file.name}`);
+          errorCount++;
+          processedFiles++;
+          checkCompletion();
         }
+      }, 10000); // 10 segundos de timeout
+
+      reader.onloadend = () => {
+        clearTimeout(timeout);
       };
 
       reader.readAsDataURL(file);
