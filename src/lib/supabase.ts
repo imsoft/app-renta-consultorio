@@ -15,7 +15,7 @@ export type Database = {
           email: string
           full_name: string | null
           avatar_url: string | null
-          role: 'professional' | 'owner' | 'admin'
+          role: 'user' | 'admin'
           created_at: string
           updated_at: string
         }
@@ -24,7 +24,7 @@ export type Database = {
           email: string
           full_name?: string | null
           avatar_url?: string | null
-          role?: 'professional' | 'owner' | 'admin'
+          role?: 'user' | 'admin'
           created_at?: string
           updated_at?: string
         }
@@ -33,7 +33,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           avatar_url?: string | null
-          role?: 'professional' | 'owner' | 'admin'
+          role?: 'user' | 'admin'
           created_at?: string
           updated_at?: string
         }

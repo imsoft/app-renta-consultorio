@@ -1,162 +1,174 @@
-require('dotenv').config({ path: '.env.local' });
+// Script de prueba para verificar la creación de consultorios
+// Ejecutar con: node scripts/test-consultorio-creation.js
+
 const { createClient } = require('@supabase/supabase-js');
 
-// Configuración de Supabase
+// Configuración de Supabase (usar variables de entorno)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Error: Variables de entorno de Supabase no configuradas');
+  console.log('Asegúrate de tener NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY configuradas');
   process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function testConsultorioCreation() {
-  console.log('🧪 Iniciando prueba de creación de consultorios...\n');
+  console.log('🧪 Iniciando pruebas de creación de consultorios...\n');
 
   try {
     // 1. Verificar conexión a Supabase
     console.log('1️⃣ Verificando conexión a Supabase...');
-    const { data: testData, error: testError } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (testError) {
-      console.error('❌ Error de conexión:', testError);
+    if (authError) {
+      console.log('⚠️  No hay usuario autenticado, esto es normal para pruebas');
+    } else if (user) {
+      console.log(`✅ Usuario autenticado: ${user.email}`);
+    }
+
+    // 2. Verificar estructura de la tabla consultorios
+    console.log('\n2️⃣ Verificando estructura de la tabla consultorios...');
+    const { data: consultorioColumns, error: columnsError } = await supabase
+      .from('consultorios')
+      .select('*')
+      .limit(1);
+
+    if (columnsError) {
+      console.error('❌ Error al acceder a la tabla consultorios:', columnsError);
       return;
     }
-    console.log('✅ Conexión exitosa\n');
 
-    // 2. Verificar tablas existentes
-    console.log('2️⃣ Verificando tablas...');
-    const tables = ['profiles', 'consultorios', 'reservas', 'favoritos', 'calificaciones'];
-    
-    for (const table of tables) {
-      const { data, error } = await supabase
-        .from(table)
-        .select('count')
-        .limit(1);
-      
-      if (error) {
-        console.error(`❌ Error en tabla ${table}:`, error);
-      } else {
-        console.log(`✅ Tabla ${table}: OK`);
-      }
-    }
-    console.log('');
+    console.log('✅ Tabla consultorios accesible');
+    console.log('📋 Columnas disponibles:', Object.keys(consultorioColumns[0] || {}));
 
-    // 3. Verificar políticas RLS
-    console.log('3️⃣ Verificando políticas RLS...');
-    
-    // Políticas de consultorios
-    const consultorioPolicies = [
-      'Anyone can view active consultorios',
-      'Owners can view their own consultorios',
-      'Owners can insert their own consultorios',
-      'Owners can update their own consultorios',
-      'Owners can delete their own consultorios'
-    ];
-
-    for (const policy of consultorioPolicies) {
-      console.log(`   - ${policy}: ✅`);
-    }
-    console.log('');
-
-    // 4. Verificar storage buckets
-    console.log('4️⃣ Verificando storage buckets...');
-    
+    // 3. Verificar bucket de storage
+    console.log('\n3️⃣ Verificando bucket de storage...');
     const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
     
     if (bucketsError) {
       console.error('❌ Error al listar buckets:', bucketsError);
     } else {
-      const bucketNames = buckets.map(b => b.name);
-      console.log('   Buckets disponibles:', bucketNames);
-      
-      if (bucketNames.includes('consultorios')) {
-        console.log('   ✅ Bucket "consultorios": OK');
+      const consultoriosBucket = buckets.find(b => b.name === 'consultorios');
+      if (consultoriosBucket) {
+        console.log('✅ Bucket "consultorios" encontrado');
+        console.log('📊 Información del bucket:', {
+          name: consultoriosBucket.name,
+          public: consultoriosBucket.public,
+          file_size_limit: consultoriosBucket.file_size_limit,
+          allowed_mime_types: consultoriosBucket.allowed_mime_types
+        });
       } else {
-        console.log('   ❌ Bucket "consultorios": FALTANTE');
-      }
-      
-      if (bucketNames.includes('avatars')) {
-        console.log('   ✅ Bucket "avatars": OK');
-      } else {
-        console.log('   ❌ Bucket "avatars": FALTANTE');
+        console.log('❌ Bucket "consultorios" no encontrado');
       }
     }
-    console.log('');
 
-    // 5. Verificar políticas de storage
-    console.log('5️⃣ Verificando políticas de storage...');
-    
-    const storagePolicies = [
-      'Consultorio images are publicly accessible',
-      'Owners can upload consultorio images',
-      'Owners can update consultorio images',
-      'Owners can delete consultorio images'
-    ];
+    // 4. Verificar políticas de storage
+    console.log('\n4️⃣ Verificando políticas de storage...');
+    const { data: storagePolicies, error: policiesError } = await supabase
+      .rpc('get_storage_policies');
 
-    for (const policy of storagePolicies) {
-      console.log(`   - ${policy}: ✅`);
-    }
-    console.log('');
-
-    // 6. Simular creación de consultorio (sin autenticación)
-    console.log('6️⃣ Simulando creación de consultorio...');
-    
-    const testConsultorio = {
-      titulo: 'Consultorio de prueba',
-      descripcion: 'Descripción de prueba',
-      direccion: 'Dirección de prueba',
-      ciudad: 'Ciudad de prueba',
-      estado: 'Estado de prueba',
-      codigo_postal: '12345',
-      precio_por_hora: 200,
-      metros_cuadrados: 20,
-      numero_consultorios: 1,
-      especialidades: ['Medicina General'],
-      propietario_id: '00000000-0000-0000-0000-000000000000' // ID de prueba
-    };
-
-    const { data: insertData, error: insertError } = await supabase
-      .from('consultorios')
-      .insert(testConsultorio)
-      .select();
-
-    if (insertError) {
-      console.log('   ❌ Error esperado (sin autenticación):', insertError.message);
-      console.log('   ✅ RLS está funcionando correctamente');
+    if (policiesError) {
+      console.log('⚠️  No se pudieron obtener las políticas de storage directamente');
+      console.log('💡 Esto puede ser normal en algunos entornos');
     } else {
-      console.log('   ⚠️  Advertencia: Se pudo insertar sin autenticación');
+      console.log('📋 Políticas de storage:', storagePolicies);
     }
-    console.log('');
 
-    // 7. Resumen de problemas identificados
-    console.log('📋 RESUMEN DE PROBLEMAS IDENTIFICADOS:');
-    console.log('');
-    console.log('🔧 PROBLEMAS CONOCIDOS:');
-    console.log('   1. Faltan políticas de storage para INSERT/UPDATE/DELETE de consultorios');
-    console.log('   2. El código actual guarda imágenes como base64 en la BD');
-    console.log('   3. Posibles problemas de permisos RLS');
-    console.log('');
-    console.log('💡 SOLUCIONES IMPLEMENTADAS:');
-    console.log('   ✅ Función uploadConsultorioImage creada');
-    console.log('   ✅ Store actualizado para manejar imágenes correctamente');
-    console.log('   ✅ Validaciones mejoradas en el formulario');
-    console.log('   ✅ Componente de debug agregado');
-    console.log('');
-    console.log('🚀 PRÓXIMOS PASOS:');
-    console.log('   1. Aplicar migración para políticas de storage');
-    console.log('   2. Probar flujo completo con usuario autenticado');
-    console.log('   3. Verificar subida de imágenes al storage');
+    // 5. Verificar RLS en la tabla consultorios
+    console.log('\n5️⃣ Verificando RLS en consultorios...');
+    const { data: rlsInfo, error: rlsError } = await supabase
+      .rpc('get_table_rls_info', { table_name: 'consultorios' });
+
+    if (rlsError) {
+      console.log('⚠️  No se pudo obtener información de RLS directamente');
+    } else {
+      console.log('🔒 Información de RLS:', rlsInfo);
+    }
+
+    // 6. Intentar crear un consultorio de prueba (solo si hay usuario autenticado)
+    if (user) {
+      console.log('\n6️⃣ Probando creación de consultorio...');
+      
+      const testConsultorio = {
+        titulo: "Consultorio de prueba",
+        descripcion: "Descripción de prueba",
+        direccion: "Calle de prueba 123",
+        ciudad: "Ciudad de prueba",
+        estado: "Estado de prueba",
+        codigo_postal: "12345",
+        precio_por_hora: 200,
+        metros_cuadrados: 25,
+        numero_consultorios: 1,
+        especialidades: ["Medicina General"],
+        servicios: ["Consulta médica"],
+        equipamiento: ["Estetoscopio"],
+        permite_mascotas: false,
+        estacionamiento: true,
+        wifi: true,
+        aire_acondicionado: false,
+        propietario_id: user.id
+      };
+
+      const { data: newConsultorio, error: createError } = await supabase
+        .from('consultorios')
+        .insert(testConsultorio)
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('❌ Error al crear consultorio:', createError);
+        
+        // Analizar el error
+        if (createError.code === '42501') {
+          console.log('🔒 Error de permisos - verificar políticas RLS');
+        } else if (createError.code === '23505') {
+          console.log('🔑 Error de clave duplicada');
+        } else if (createError.code === '23502') {
+          console.log('📝 Error de campo requerido faltante');
+        }
+      } else {
+        console.log('✅ Consultorio creado exitosamente:', newConsultorio.id);
+        
+        // Limpiar el consultorio de prueba
+        const { error: deleteError } = await supabase
+          .from('consultorios')
+          .delete()
+          .eq('id', newConsultorio.id);
+        
+        if (deleteError) {
+          console.log('⚠️  No se pudo eliminar el consultorio de prueba:', deleteError);
+        } else {
+          console.log('🧹 Consultorio de prueba eliminado');
+        }
+      }
+    } else {
+      console.log('\n6️⃣ Omitiendo prueba de creación (no hay usuario autenticado)');
+    }
+
+    // 7. Verificar políticas de la tabla consultorios
+    console.log('\n7️⃣ Verificando políticas de la tabla consultorios...');
+    const { data: tablePolicies, error: tablePoliciesError } = await supabase
+      .rpc('get_table_policies', { table_name: 'consultorios' });
+
+    if (tablePoliciesError) {
+      console.log('⚠️  No se pudieron obtener las políticas de la tabla directamente');
+    } else {
+      console.log('📋 Políticas de la tabla consultorios:', tablePolicies);
+    }
+
+    console.log('\n✅ Pruebas completadas');
+    console.log('\n📝 Resumen de problemas encontrados:');
+    console.log('- Si hay errores de permisos, verificar políticas RLS');
+    console.log('- Si no se puede crear consultorio, verificar estructura de la tabla');
+    console.log('- Si no se pueden subir imágenes, verificar políticas de storage');
 
   } catch (error) {
-    console.error('❌ Error general:', error);
+    console.error('❌ Error general durante las pruebas:', error);
   }
 }
 
-// Ejecutar la prueba
+// Ejecutar las pruebas
 testConsultorioCreation();

@@ -109,11 +109,53 @@ const consultorioSchema = z.object({
 type ConsultorioFormValues = z.infer<typeof consultorioSchema>;
 
 // Opciones para selects (se pueden expandir según las necesidades reales)
-const especialidadesOptions: string[] = [];
+const especialidadesOptions = [
+  "Medicina General",
+  "Cardiología",
+  "Dermatología",
+  "Endocrinología",
+  "Gastroenterología",
+  "Ginecología",
+  "Neurología",
+  "Oftalmología",
+  "Ortopedia",
+  "Pediatría",
+  "Psiquiatría",
+  "Radiología",
+  "Traumatología",
+  "Urología"
+];
 
-const serviciosOptions: string[] = [];
+const serviciosOptions = [
+  "Consulta médica",
+  "Exámenes de laboratorio",
+  "Radiografías",
+  "Ecografías",
+  "Electrocardiogramas",
+  "Espirometría",
+  "Endoscopias",
+  "Cirugía ambulatoria",
+  "Terapia física",
+  "Psicoterapia"
+];
 
-const equipamientoOptions: string[] = [];
+const equipamientoOptions = [
+  "Estetoscopio",
+  "Tensiómetro",
+  "Termómetro",
+  "Otoscopio",
+  "Oftalmoscopio",
+  "Equipo de rayos X",
+  "Ecógrafo",
+  "Electrocardiógrafo",
+  "Espirómetro",
+  "Endoscopio",
+  "Equipo de cirugía",
+  "Cama de exploración",
+  "Silla de ruedas",
+  "Muletas",
+  "Vendajes"
+];
 
 const estadosOptions = [
   "Aguascalientes", "Baja California", "Baja California Sur", "Campeche",
@@ -180,14 +222,21 @@ function CrearConsultorioPageContent() {
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      console.log('No se seleccionaron archivos');
+      return;
+    }
+
+    console.log(`Archivos seleccionados: ${files.length}`);
 
     // Validar tipos de archivo
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type));
     
     if (invalidFiles.length > 0) {
-      setError(`Archivos no válidos: ${invalidFiles.map(f => f.name).join(', ')}. Solo se permiten JPG, PNG y WebP.`);
+      const errorMsg = `Archivos no válidos: ${invalidFiles.map(f => f.name).join(', ')}. Solo se permiten JPG, PNG y WebP.`;
+      console.error(errorMsg);
+      setError(errorMsg);
       return;
     }
 
@@ -196,39 +245,66 @@ function CrearConsultorioPageContent() {
     const oversizedFiles = Array.from(files).filter(file => file.size > maxSize);
     
     if (oversizedFiles.length > 0) {
-      setError(`Archivos demasiado grandes: ${oversizedFiles.map(f => f.name).join(', ')}. El tamaño máximo es 5MB.`);
+      const errorMsg = `Archivos demasiado grandes: ${oversizedFiles.map(f => f.name).join(', ')}. El tamaño máximo es 5MB.`;
+      console.error(errorMsg);
+      setError(errorMsg);
       return;
     }
 
     // Limpiar errores previos
     setError("");
     setProcessingImages(true);
+    console.log('Iniciando procesamiento de imágenes...');
 
     const newImages: string[] = [];
     let processedFiles = 0;
+    let errorCount = 0;
 
     Array.from(files).forEach((file, index) => {
+      console.log(`Procesando archivo ${index + 1}: ${file.name} (${file.size} bytes, tipo: ${file.type})`);
+      
       const reader = new FileReader();
       
       reader.onload = (e) => {
         if (e.target?.result) {
           newImages.push(e.target.result as string);
+          console.log(`Archivo ${file.name} procesado exitosamente`);
+        } else {
+          console.error(`No se pudo leer el contenido del archivo: ${file.name}`);
+          errorCount++;
         }
         processedFiles++;
         
         // Cuando todos los archivos han sido procesados
         if (processedFiles === files.length) {
-          setUploadedImages(prev => [...prev, ...newImages]);
+          if (errorCount === 0) {
+            setUploadedImages(prev => [...prev, ...newImages]);
+            console.log(`Se procesaron ${newImages.length} imágenes exitosamente`);
+            setSuccess(`Se subieron ${newImages.length} imágenes correctamente`);
+          } else {
+            console.warn(`${errorCount} archivos tuvieron errores durante el procesamiento`);
+            if (newImages.length > 0) {
+              setUploadedImages(prev => [...prev, ...newImages]);
+              setSuccess(`Se subieron ${newImages.length} imágenes correctamente (${errorCount} fallaron)`);
+            }
+          }
           setProcessingImages(false);
-          console.log(`Se procesaron ${newImages.length} imágenes exitosamente`);
         }
       };
 
-      reader.onerror = () => {
-        console.error(`Error al leer el archivo: ${file.name}`);
+      reader.onerror = (error) => {
+        console.error(`Error al leer el archivo ${file.name}:`, error);
         setError(`Error al procesar la imagen: ${file.name}`);
-        setProcessingImages(false);
+        errorCount++;
         processedFiles++;
+        
+        if (processedFiles === files.length) {
+          setProcessingImages(false);
+          if (newImages.length > 0) {
+            setUploadedImages(prev => [...prev, ...newImages]);
+            setSuccess(`Se subieron ${newImages.length} imágenes correctamente (${errorCount} fallaron)`);
+          }
+        }
       };
 
       reader.readAsDataURL(file);
@@ -278,7 +354,6 @@ function CrearConsultorioPageContent() {
         especialidades: data.especialidades,
         servicios: data.servicios || [],
         equipamiento: data.equipamiento || [],
-        horarios: data.horarios,
         permite_mascotas: data.permite_mascotas || false,
         estacionamiento: data.estacionamiento || false,
         wifi: data.wifi || false,
@@ -385,6 +460,58 @@ function CrearConsultorioPageContent() {
 
         {/* Debug Info - Solo mostrar en desarrollo */}
         <DebugInfo show={process.env.NODE_ENV === 'development'} />
+        
+        {/* Botón de debug para probar la funcionalidad */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Debug - Solo desarrollo</h3>
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log('Estado actual del formulario:', form.getValues());
+                  console.log('Imágenes subidas:', uploadedImages);
+                  console.log('Usuario autenticado:', user);
+                  console.log('Estado de autenticación:', isAuthenticated);
+                }}
+              >
+                Ver estado del formulario en consola
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const testData = {
+                    titulo: "Consultorio de prueba",
+                    descripcion: "Descripción de prueba para el consultorio",
+                    direccion: "Calle de prueba 123",
+                    ciudad: "Ciudad de prueba",
+                    estado: "Estado de prueba",
+                    codigo_postal: "12345",
+                    precio_por_hora: 200,
+                    metros_cuadrados: 25,
+                    numero_consultorios: 1,
+                    especialidades: ["Medicina General"],
+                    servicios: ["Consulta médica"],
+                    equipamiento: ["Estetoscopio"],
+                    permite_mascotas: false,
+                    estacionamiento: true,
+                    wifi: true,
+                    aire_acondicionado: false,
+                    imagenes: [],
+                    imagen_principal: undefined,
+                  };
+                  console.log('Datos de prueba para crear consultorio:', testData);
+                }}
+              >
+                Generar datos de prueba
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Messages */}
         {error && (

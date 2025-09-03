@@ -20,7 +20,7 @@ interface Profile {
   cedula_profesional?: string
   biografia?: string
   avatar_url?: string
-  role: 'user' | 'professional' | 'owner' | 'admin'
+  role: 'user' | 'admin'
   verificado: boolean
   activo: boolean
   created_at: string
@@ -124,7 +124,7 @@ interface Calificacion {
 interface UserData {
   nombre: string
   apellidos: string
-  role?: 'user' | 'professional' | 'owner' | 'admin'
+  role?: 'user' | 'admin'
 }
 
 interface ProfileUpdates {
@@ -298,7 +298,7 @@ export const useSupabaseStore = create<SupabaseState>()(
               full_name: `${userData.nombre} ${userData.apellidos}`,
               nombre: userData.nombre,
               apellidos: userData.apellidos,
-              role: userData.role || 'professional',
+              role: userData.role || 'user',
             }
           }
         })
@@ -544,15 +544,37 @@ export const useSupabaseStore = create<SupabaseState>()(
         if (!user) return { data: null, error: new Error('No user logged in') }
 
         try {
-          // Primero crear el consultorio sin imágenes
+          // Preparar los datos del consultorio, excluyendo campos que no existen en la BD
+          const consultorioData = {
+            titulo: consultorio.titulo,
+            descripcion: consultorio.descripcion,
+            direccion: consultorio.direccion,
+            ciudad: consultorio.ciudad,
+            estado: consultorio.estado,
+            codigo_postal: consultorio.codigo_postal,
+            precio_por_hora: consultorio.precio_por_hora,
+            precio_por_dia: consultorio.precio_por_dia,
+            precio_por_mes: consultorio.precio_por_mes,
+            metros_cuadrados: consultorio.metros_cuadrados,
+            numero_consultorios: consultorio.numero_consultorios,
+            equipamiento: consultorio.equipamiento || [],
+            servicios: consultorio.servicios || [],
+            especialidades: consultorio.especialidades || [],
+            permite_mascotas: consultorio.permite_mascotas || false,
+            estacionamiento: consultorio.estacionamiento || false,
+            wifi: consultorio.wifi || false,
+            aire_acondicionado: consultorio.aire_acondicionado || false,
+            propietario_id: user.id,
+            imagenes: [], // Inicialmente sin imágenes
+            imagen_principal: null,
+          }
+
+          console.log('Datos del consultorio a insertar:', consultorioData)
+
+          // Crear el consultorio
           const { data: newConsultorio, error: insertError } = await supabase
             .from('consultorios')
-            .insert({
-              ...consultorio,
-              propietario_id: user.id,
-              imagenes: [], // Inicialmente sin imágenes
-              imagen_principal: null,
-            })
+            .insert(consultorioData)
             .select()
             .single()
 
@@ -561,31 +583,41 @@ export const useSupabaseStore = create<SupabaseState>()(
             return { data: null, error: insertError }
           }
 
+          console.log('Consultorio creado exitosamente:', newConsultorio)
+
           // Si hay imágenes base64, convertirlas y subirlas al storage
           if (consultorio.imagenes && consultorio.imagenes.length > 0) {
+            console.log('Procesando imágenes...')
             const uploadedImageUrls: string[] = []
             
             for (let i = 0; i < consultorio.imagenes.length; i++) {
               const base64Image = consultorio.imagenes[i]
+              console.log(`Procesando imagen ${i + 1}/${consultorio.imagenes.length}`)
               
-              // Convertir base64 a File
-              const response = await fetch(base64Image)
-              const blob = await response.blob()
-              const file = new File([blob], `image_${i}.jpg`, { type: 'image/jpeg' })
-              
-              // Subir al storage
-              const { url, error: uploadError } = await uploadConsultorioImage(file, newConsultorio.id)
-              
-              if (uploadError) {
-                console.error('Error uploading image:', uploadError)
-                // Continuar con las otras imágenes
-              } else {
-                uploadedImageUrls.push(url)
+              try {
+                // Convertir base64 a File
+                const response = await fetch(base64Image)
+                const blob = await response.blob()
+                const file = new File([blob], `image_${i}.jpg`, { type: 'image/jpeg' })
+                
+                // Subir al storage
+                const { url, error: uploadError } = await uploadConsultorioImage(file, newConsultorio.id)
+                
+                if (uploadError) {
+                  console.error('Error uploading image:', uploadError)
+                  // Continuar con las otras imágenes
+                } else {
+                  console.log('Imagen subida exitosamente:', url)
+                  uploadedImageUrls.push(url)
+                }
+              } catch (imageError) {
+                console.error(`Error procesando imagen ${i}:`, imageError)
               }
             }
 
             // Actualizar el consultorio con las URLs de las imágenes
             if (uploadedImageUrls.length > 0) {
+              console.log('Actualizando consultorio con imágenes:', uploadedImageUrls)
               const { error: updateError } = await supabase
                 .from('consultorios')
                 .update({
@@ -596,6 +628,8 @@ export const useSupabaseStore = create<SupabaseState>()(
 
               if (updateError) {
                 console.error('Error updating consultorio with images:', updateError)
+              } else {
+                console.log('Consultorio actualizado con imágenes exitosamente')
               }
             }
           }
