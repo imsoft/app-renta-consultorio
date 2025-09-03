@@ -212,12 +212,116 @@ function CrearConsultorioPageContent() {
     },
   });
 
+  // Función para verificar si un paso está completo
+  const isStepComplete = (step: number) => {
+    const formValues = form.getValues();
+    
+    switch (step) {
+      case 1: // Información básica
+        return !!(
+          formValues.titulo?.trim().length >= 3 &&
+          formValues.descripcion?.trim().length >= 20 &&
+          formValues.direccion?.trim().length >= 10 &&
+          formValues.ciudad?.trim().length >= 2 &&
+          formValues.estado?.trim().length >= 2 &&
+          formValues.codigo_postal?.trim().length >= 5
+        );
+      
+      case 2: // Detalles
+        return !!(
+          formValues.precio_por_hora &&
+          formValues.precio_por_hora >= 100 &&
+          formValues.metros_cuadrados &&
+          formValues.metros_cuadrados >= 1 &&
+          formValues.numero_consultorios &&
+          formValues.numero_consultorios >= 1
+        );
+      
+      case 3: // Servicios
+        return !!(
+          formValues.especialidades &&
+          formValues.especialidades.length > 0
+        );
+      
+      case 4: // Imágenes
+        return uploadedImages.length > 0;
+      
+      default:
+        return false;
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
   }, [isAuthenticated, router]);
+
+  // Efecto para detectar cambios en el formulario y validar automáticamente
+  useEffect(() => {
+    // Validar inmediatamente al cargar
+    const validateForm = () => {
+      const formValues = form.getValues();
+      const camposFaltantes: string[] = [];
+      
+      if (!formValues.titulo || formValues.titulo.trim().length < 3) {
+        camposFaltantes.push("Título (mínimo 3 caracteres)");
+      }
+      
+      if (!formValues.descripcion || formValues.descripcion.trim().length < 20) {
+        camposFaltantes.push("Descripción (mínimo 20 caracteres)");
+      }
+      
+      if (!formValues.direccion || formValues.direccion.trim().length < 10) {
+        camposFaltantes.push("Dirección (mínimo 10 caracteres)");
+      }
+      
+      if (!formValues.ciudad || formValues.ciudad.trim().length < 2) {
+        camposFaltantes.push("Ciudad");
+      }
+      
+      if (!formValues.estado || formValues.estado.trim().length < 2) {
+        camposFaltantes.push("Estado");
+      }
+      
+      if (!formValues.codigo_postal || formValues.codigo_postal.trim().length < 5) {
+        camposFaltantes.push("Código Postal (mínimo 5 dígitos)");
+      }
+      
+      if (!formValues.precio_por_hora || formValues.precio_por_hora < 100) {
+        camposFaltantes.push("Precio por hora (mínimo $100)");
+      }
+      
+      if (!formValues.metros_cuadrados || formValues.metros_cuadrados < 1) {
+        camposFaltantes.push("Metros cuadrados");
+      }
+      
+      if (!formValues.numero_consultorios || formValues.numero_consultorios < 1) {
+        camposFaltantes.push("Número de consultorios");
+      }
+      
+      if (!formValues.especialidades || formValues.especialidades.length === 0) {
+        camposFaltantes.push("Especialidades (selecciona al menos una)");
+      }
+
+      if (!uploadedImages || uploadedImages.length === 0) {
+        camposFaltantes.push("Imágenes (sube al menos una imagen)");
+      }
+
+      setCamposFaltantes(camposFaltantes);
+    };
+
+    // Validar inmediatamente
+    validateForm();
+
+    // Validar cuando cambien los valores
+    const subscription = form.watch(() => {
+      validateForm();
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, uploadedImages]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -519,7 +623,7 @@ function CrearConsultorioPageContent() {
                       : `Ir al paso ${step}`
                   }
                 >
-                  {currentStep > step ? (
+                  {isStepComplete(step) ? (
                     <CheckCircle className="h-5 w-5" />
                   ) : (
                     step
