@@ -176,6 +176,7 @@ function CrearConsultorioPageContent() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [processingImages, setProcessingImages] = useState(false);
+  const [camposFaltantes, setCamposFaltantes] = useState<string[]>([]);
 
   const form = useForm<ConsultorioFormValues>({
     resolver: zodResolver(consultorioSchema),
@@ -354,11 +355,63 @@ function CrearConsultorioPageContent() {
         return;
       }
 
+      // Validar campos requeridos y mostrar mensajes específicos
+      const camposFaltantes: string[] = [];
+      
+      if (!data.titulo || data.titulo.trim().length < 3) {
+        camposFaltantes.push("Título (mínimo 3 caracteres)");
+      }
+      
+      if (!data.descripcion || data.descripcion.trim().length < 20) {
+        camposFaltantes.push("Descripción (mínimo 20 caracteres)");
+      }
+      
+      if (!data.direccion || data.direccion.trim().length < 10) {
+        camposFaltantes.push("Dirección (mínimo 10 caracteres)");
+      }
+      
+      if (!data.ciudad || data.ciudad.trim().length < 2) {
+        camposFaltantes.push("Ciudad");
+      }
+      
+      if (!data.estado || data.estado.trim().length < 2) {
+        camposFaltantes.push("Estado");
+      }
+      
+      if (!data.codigo_postal || data.codigo_postal.trim().length < 5) {
+        camposFaltantes.push("Código Postal (mínimo 5 dígitos)");
+      }
+      
+      if (!data.precio_por_hora || data.precio_por_hora < 100) {
+        camposFaltantes.push("Precio por hora (mínimo $100)");
+      }
+      
+      if (!data.metros_cuadrados || data.metros_cuadrados < 1) {
+        camposFaltantes.push("Metros cuadrados");
+      }
+      
+      if (!data.numero_consultorios || data.numero_consultorios < 1) {
+        camposFaltantes.push("Número de consultorios");
+      }
+      
+      if (!data.especialidades || data.especialidades.length === 0) {
+        camposFaltantes.push("Especialidades (selecciona al menos una)");
+      }
+
       // Validar que se hayan subido imágenes
       if (!uploadedImages || uploadedImages.length === 0) {
-        setError("Debes subir al menos una imagen del consultorio.");
+        camposFaltantes.push("Imágenes (sube al menos una imagen)");
+      }
+
+      // Si hay campos faltantes, mostrar error y detener
+      if (camposFaltantes.length > 0) {
+        setCamposFaltantes(camposFaltantes);
+        setError("Por favor, completa los campos marcados abajo:");
         return;
       }
+
+      // Limpiar campos faltantes si no hay errores
+      setCamposFaltantes([]);
 
       const consultorioData = {
         titulo: data.titulo || "Consultorio sin título",
@@ -1175,6 +1228,23 @@ function CrearConsultorioPageContent() {
                 </Button>
               )}
             </div>
+
+            {/* Mensaje de validación de campos faltantes */}
+            {camposFaltantes.length > 0 && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start">
+                  <AlertCircle className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <div className="text-yellow-700">
+                    <p className="font-medium mb-2">Por favor, completa los siguientes campos para continuar:</p>
+                    <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
+                      {camposFaltantes.map((campo, index) => (
+                        <li key={index}>{campo}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </Form>
       </main>
