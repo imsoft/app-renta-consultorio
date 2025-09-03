@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import AutoFixOAuth from "@/components/AutoFixOAuth";
 import BlankPageFix from "@/components/BlankPageFix";
 import GoogleOAuthErrorHandler from "@/components/GoogleOAuthErrorHandler";
+import PageVisibilityOptimizer from "@/components/PageVisibilityOptimizer";
 import { Analytics } from "@vercel/analytics/next"
 
 // Deshabilitar prerender globalmente para evitar problemas con Supabase
@@ -55,15 +56,17 @@ export default function RootLayout({
           forcedTheme="light"
         >
           <ErrorBoundary>
-            <SupabaseProvider>
-              <GoogleOAuthErrorHandler>
-                <AutoFixOAuth>
-                  <BlankPageFix>
-                    {children}
-                  </BlankPageFix>
-                </AutoFixOAuth>
-              </GoogleOAuthErrorHandler>
-            </SupabaseProvider>
+            <PageVisibilityOptimizer>
+              <SupabaseProvider>
+                <GoogleOAuthErrorHandler>
+                  <AutoFixOAuth>
+                    <BlankPageFix>
+                      {children}
+                    </BlankPageFix>
+                  </AutoFixOAuth>
+                </GoogleOAuthErrorHandler>
+              </SupabaseProvider>
+            </PageVisibilityOptimizer>
           </ErrorBoundary>
         </ThemeProvider>
         {/* Analytics opcional - se carga solo si no está bloqueado */}

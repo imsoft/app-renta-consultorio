@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSupabaseStore } from '@/stores/supabaseStore'
 import { useAuthStore } from '@/stores/authStore'
-import { supabase } from '@/lib/supabase'
 
 interface BlankPageFixProps {
   children: React.ReactNode
@@ -17,67 +16,68 @@ export default function BlankPageFix({ children }: BlankPageFixProps) {
   const { user: supabaseUser, session } = useSupabaseStore()
   const { user: authUser, isAuthenticated } = useAuthStore()
 
-  // Detectar página en blanco
+  // Detectar página en blanco de manera más precisa
   const detectBlankPage = () => {
-    // Verificar si estamos en una página que debería mostrar contenido
+    // Solo verificar en páginas que requieren autenticación
     const currentPath = window.location.pathname
+    const protectedPages = ['/dashboard', '/perfil', '/reservas', '/favoritos', '/mis-consultorios', '/admin']
     
-    // Páginas que deberían mostrar contenido después del login
-    const contentPages = ['/dashboard', '/perfil', '/reservas', '/favoritos', '/mis-consultorios']
+    if (!protectedPages.some(page => currentPath.startsWith(page))) {
+      return false
+    }
     
-    if (contentPages.some(page => currentPath.startsWith(page))) {
-      // Verificar si hay usuario autenticado pero la página está vacía
-      if ((supabaseUser || authUser) && document.body.children.length < 3) {
-        console.log('🔧 BlankPageFix: Página en blanco detectada')
-        return true
-      }
-      
-      // Verificar si hay sesión pero no se muestra contenido
-      if (session && document.querySelector('main')?.children.length === 0) {
-        console.log('🔧 BlankPageFix: Contenido principal vacío detectado')
-        return true
-      }
+    // Verificar si hay usuario autenticado pero la página está realmente vacía
+    if ((supabaseUser || authUser) && document.body.children.length < 3) {
+      console.log('🔧 BlankPageFix: Página en blanco detectada en página protegida')
+      return true
+    }
+    
+    // Verificar si hay sesión pero no se muestra contenido principal
+    if (session && document.querySelector('main')?.children.length === 0) {
+      console.log('🔧 BlankPageFix: Contenido principal vacío detectado')
+      return true
     }
     
     return false
   }
 
-  // Reparar página en blanco
+  // Reparar página en blanco de manera más suave
   const fixBlankPage = async () => {
     try {
       console.log('🔧 BlankPageFix: Reparando página en blanco...')
       
-      // Limpiar datos corruptos
+      // Solo limpiar datos específicos si es necesario
       if (typeof window !== 'undefined') {
-        // Limpiar localStorage específico
-        localStorage.removeItem('wellpoint-auth')
-        localStorage.removeItem('supabase.auth.token')
-        
-        // Limpiar datos de Supabase
+        // Limpiar solo datos corruptos de Supabase
         Object.keys(localStorage).forEach(key => {
-          if (key.includes('supabase') || key.includes('wellpoint')) {
-            localStorage.removeItem(key)
+          if (key.includes('supabase.auth.token') && key.includes('expires_at')) {
+            const expiresAt = localStorage.getItem(key)
+            if (expiresAt && new Date(expiresAt) < new Date()) {
+              localStorage.removeItem(key)
+            }
           }
         })
       }
       
-      // Forzar refresh de la página
-      console.log('🔧 BlankPageFix: Recargando página...')
-      window.location.reload()
+      // Intentar navegar a la misma página en lugar de recargar
+      console.log('🔧 BlankPageFix: Navegando a la misma página...')
+      router.refresh()
       
     } catch (error) {
       console.error('❌ BlankPageFix: Error reparando página en blanco:', error)
+      // Solo recargar como último recurso
+      window.location.reload()
     }
   }
 
-  // Detectar y reparar automáticamente
+  // Detectar y reparar automáticamente con mejor lógica
   useEffect(() => {
     const checkForBlankPage = () => {
       if (isDetecting) return
       
       setIsDetecting(true)
       
-      // Esperar un poco para que la página se cargue completamente
+      // Esperar más tiempo para evitar falsos positivos
       setTimeout(() => {
         const isBlank = detectBlankPage()
         
@@ -88,16 +88,20 @@ export default function BlankPageFix({ children }: BlankPageFixProps) {
         }
         
         setIsDetecting(false)
-      }, 2000) // Esperar 2 segundos para detectar página en blanco
+      }, 5000) // Aumentar a 5 segundos para evitar falsos positivos
     }
 
-    // Verificar después de que los stores se inicialicen
-    const timer = setTimeout(checkForBlankPage, 1000)
+    // Solo verificar si estamos en una página protegida
+    const currentPath = window.location.pathname
+    const protectedPages = ['/dashboard', '/perfil', '/reservas', '/favoritos', '/mis-consultorios', '/admin']
     
-    return () => clearTimeout(timer)
-  }, [supabaseUser, authUser, session, isAuthenticated, isDetecting, blankPageDetected])
+    if (protectedPages.some(page => currentPath.startsWith(page))) {
+      const timer = setTimeout(checkForBlankPage, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [supabaseUser, authUser, session, isAuthenticated, isDetecting, blankPageDetected, router])
 
-  // Mostrar indicador de reparación si es necesario
+  // Mostrar indicador de reparación solo si es necesario
   if (blankPageDetected) {
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
