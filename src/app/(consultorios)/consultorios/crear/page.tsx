@@ -101,9 +101,7 @@ const consultorioSchema = z.object({
   estacionamiento: z.boolean().optional(),
   wifi: z.boolean().optional(),
   aire_acondicionado: z.boolean().optional(),
-  terminos: z.boolean().refine((val) => val === true, {
-    message: "Debes aceptar los términos y condiciones",
-  }),
+  terminos: z.boolean().optional(),
 });
 
 type ConsultorioFormValues = z.infer<typeof consultorioSchema>;
@@ -197,14 +195,14 @@ function CrearConsultorioPageContent() {
       servicios: [],
       equipamiento: [],
           horarios: {
-      lunes: { abierto: true, inicio: "08:00", fin: "18:00" },
-      martes: { abierto: true, inicio: "08:00", fin: "18:00" },
-      miercoles: { abierto: true, inicio: "08:00", fin: "18:00" },
-      jueves: { abierto: true, inicio: "08:00", fin: "18:00" },
-      viernes: { abierto: true, inicio: "08:00", fin: "18:00" },
-      sabado: { abierto: false, inicio: "", fin: "" },
-      domingo: { abierto: false, inicio: "", fin: "" }
-    },
+        lunes: { abierto: true, inicio: "08:00", fin: "18:00" },
+        martes: { abierto: true, inicio: "08:00", fin: "18:00" },
+        miercoles: { abierto: true, inicio: "08:00", fin: "18:00" },
+        jueves: { abierto: true, inicio: "08:00", fin: "18:00" },
+        viernes: { abierto: true, inicio: "08:00", fin: "18:00" },
+        sabado: { abierto: false, inicio: "", fin: "" },
+        domingo: { abierto: false, inicio: "", fin: "" }
+      },
       permite_mascotas: false,
       estacionamiento: false,
       wifi: true,
@@ -356,26 +354,30 @@ function CrearConsultorioPageContent() {
         return;
       }
 
-      // La validación de rol ya se hace en ProtectedRoute
+      // Validar que se hayan subido imágenes
+      if (!uploadedImages || uploadedImages.length === 0) {
+        setError("Debes subir al menos una imagen del consultorio.");
+        return;
+      }
 
       const consultorioData = {
-        titulo: data.titulo,
-        descripcion: data.descripcion,
-        direccion: data.direccion,
-        ciudad: data.ciudad,
-        estado: data.estado,
-        codigo_postal: data.codigo_postal,
-        precio_por_hora: data.precio_por_hora,
-        precio_por_dia: data.precio_por_dia || undefined,
-        precio_por_mes: data.precio_por_mes || undefined,
-        metros_cuadrados: data.metros_cuadrados,
-        numero_consultorios: data.numero_consultorios,
-        especialidades: data.especialidades,
-        servicios: data.servicios || [],
-        equipamiento: data.equipamiento || [],
+        titulo: data.titulo || "Consultorio sin título",
+        descripcion: data.descripcion || "Sin descripción",
+        direccion: data.direccion || "Dirección no especificada",
+        ciudad: data.ciudad || "Ciudad no especificada",
+        estado: data.estado || "Estado no especificado",
+        codigo_postal: data.codigo_postal || "",
+        precio_por_hora: data.precio_por_hora || 200,
+        precio_por_dia: data.precio_por_dia || 0,
+        precio_por_mes: data.precio_por_mes || 0,
+        metros_cuadrados: data.metros_cuadrados || 20,
+        numero_consultorios: data.numero_consultorios || 1,
+        especialidades: data.especialidades || ["Medicina General"],
+        servicios: data.servicios || ["Consulta médica"],
+        equipamiento: data.equipamiento || ["Estetoscopio"],
         permite_mascotas: data.permite_mascotas || false,
         estacionamiento: data.estacionamiento || false,
-        wifi: data.wifi || false,
+        wifi: data.wifi || true,
         aire_acondicionado: data.aire_acondicionado || false,
         imagenes: uploadedImages,
         imagen_principal: uploadedImages[0] || undefined,
