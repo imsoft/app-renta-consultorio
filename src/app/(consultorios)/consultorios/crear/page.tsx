@@ -524,6 +524,10 @@ function CrearConsultorioPageContent() {
                     imagen_principal: undefined,
                   };
                   console.log('Datos de prueba para crear consultorio:', testData);
+                  // Rellenar el formulario con datos de prueba
+                  Object.entries(testData).forEach(([key, value]) => {
+                    form.setValue(key as keyof ConsultorioFormValues, value as never);
+                  });
                 }}
               >
                 Generar datos de prueba
