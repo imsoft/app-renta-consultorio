@@ -522,10 +522,10 @@ export default function EditarConsultorioPage() {
         camposFaltantes.push("Especialidades (selecciona al menos una)");
       }
 
-      // Validar que se hayan subido imágenes
-      if (!uploadedImages || uploadedImages.length === 0) {
-        camposFaltantes.push("Imágenes (sube al menos una imagen)");
-      }
+      // Validar que se hayan subido imágenes (opcional para editar)
+      // if (!uploadedImages || uploadedImages.length === 0) {
+      //   camposFaltantes.push("Imágenes (sube al menos una imagen)");
+      // }
 
       // Si hay campos faltantes, mostrar error y detener
       if (camposFaltantes.length > 0) {
@@ -537,6 +537,17 @@ export default function EditarConsultorioPage() {
       // Limpiar campos faltantes si no hay errores
       setCamposFaltantes([]);
 
+      // Procesar imágenes: separar las existentes de las nuevas
+      const imagenesExistentes = uploadedImages.filter(img => !img.startsWith('data:'));
+      const imagenesNuevas = uploadedImages.filter(img => img.startsWith('data:'));
+      
+      console.log("Imágenes existentes:", imagenesExistentes);
+      console.log("Imágenes nuevas (base64):", imagenesNuevas.length);
+      
+      // Por ahora, solo usar las imágenes existentes
+      // TODO: Implementar subida de nuevas imágenes al storage
+      const imagenesFinales = imagenesExistentes;
+      
       const consultorioData = {
         titulo: data.titulo,
         descripcion: data.descripcion,
@@ -557,8 +568,8 @@ export default function EditarConsultorioPage() {
         estacionamiento: data.estacionamiento,
         wifi: data.wifi,
         aire_acondicionado: data.aire_acondicionado,
-        imagenes: uploadedImages,
-        imagen_principal: uploadedImages[0] || undefined,
+        imagenes: imagenesFinales,
+        imagen_principal: imagenesFinales[0] || undefined,
       };
 
       console.log("Actualizando consultorio con datos:", consultorioData);
@@ -1205,6 +1216,9 @@ export default function EditarConsultorioPage() {
                         {/* Debug info */}
                         <div className="mt-4 text-xs text-gray-500">
                           <p>Estado actual: {uploadedImages.length} imágenes</p>
+                          <p className="text-orange-600">
+                            ⚠️ Las nuevas imágenes se guardarán en la próxima actualización
+                          </p>
                           <Button 
                             type="button" 
                             variant="outline" 
