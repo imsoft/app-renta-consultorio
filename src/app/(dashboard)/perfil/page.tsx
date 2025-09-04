@@ -118,13 +118,25 @@ function PerfilContent() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const { user } = useAuthStore();
-  const { getProfile, updateProfile } = useSupabaseStore();
+  const { getProfile, updateProfile, getUserStats } = useSupabaseStore();
   const [profileData, setProfileData] = useState<ProfileFormValues | null>(null);
+  const [userStats, setUserStats] = useState<{
+    reservasRealizadas: number;
+    consultoriosVisitados: number;
+    totalGastado: number;
+    favoritosCount: number;
+    consultoriosRegistrados: number;
+    totalReservasRecibidas: number;
+    ingresosTotales: number;
+    calificacionPromedio: number;
+    reseñasRecibidas: number;
+  } | null>(null);
 
-  // Cargar datos del perfil
+  // Cargar datos del perfil y estadísticas
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadProfileAndStats = async () => {
       if (user) {
+        // Cargar perfil
         const { data } = await getProfile();
         if (data) {
           // Mapear datos de Supabase a formato del formulario
@@ -146,10 +158,16 @@ function PerfilContent() {
           // Usar datos por defecto si no hay perfil
           setProfileData(getProfileData(user?.role || "professional"));
         }
+
+        // Cargar estadísticas
+        const { data: stats } = await getUserStats();
+        if (stats) {
+          setUserStats(stats);
+        }
       }
     };
-    loadProfile();
-  }, [user, getProfile]);
+    loadProfileAndStats();
+  }, [user, getProfile, getUserStats]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -557,14 +575,28 @@ function PerfilContent() {
                         <Building className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Consultorios visitados</span>
                       </div>
-                      <span className="font-semibold">0</span>
+                      <span className="font-semibold">{userStats?.consultoriosVisitados || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <Calendar className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Reservas realizadas</span>
                       </div>
-                      <span className="font-semibold">0</span>
+                      <span className="font-semibold">{userStats?.reservasRealizadas || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <CreditCard className="h-5 w-5 text-primary mr-2" />
+                        <span className="text-sm">Total gastado</span>
+                      </div>
+                      <span className="font-semibold">${(userStats?.totalGastado || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Star className="h-5 w-5 text-yellow-500 mr-2" />
+                        <span className="text-sm">Favoritos</span>
+                      </div>
+                      <span className="font-semibold">{userStats?.favoritosCount || 0}</span>
                     </div>
                   </>
                 ) : (
@@ -574,14 +606,21 @@ function PerfilContent() {
                         <Building className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Consultorios registrados</span>
                       </div>
-                      <span className="font-semibold">0</span>
+                      <span className="font-semibold">{userStats?.consultoriosRegistrados || 0}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <CreditCard className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Ingresos totales</span>
                       </div>
-                      <span className="font-semibold">$0</span>
+                      <span className="font-semibold">${(userStats?.ingresosTotales || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Calendar className="h-5 w-5 text-primary mr-2" />
+                        <span className="text-sm">Reservas recibidas</span>
+                      </div>
+                      <span className="font-semibold">{userStats?.totalReservasRecibidas || 0}</span>
                     </div>
                   </>
                 )}
@@ -590,14 +629,14 @@ function PerfilContent() {
                     <Star className="h-5 w-5 text-yellow-500 mr-2" />
                     <span className="text-sm">Calificación promedio</span>
                   </div>
-                  <span className="font-semibold">0.0</span>
+                  <span className="font-semibold">{(userStats?.calificacionPromedio || 0).toFixed(1)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <User className="h-5 w-5 text-primary mr-2" />
                     <span className="text-sm">Reseñas recibidas</span>
                   </div>
-                  <span className="font-semibold">0</span>
+                  <span className="font-semibold">{userStats?.reseñasRecibidas || 0}</span>
                 </div>
               </CardContent>
             </Card>

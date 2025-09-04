@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthStore } from "@/stores/authStore";
+import { useSupabaseStore } from "@/stores/supabaseStore";
 import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -40,7 +41,7 @@ interface Transaccion {
   monto: number;
   comision: number;
   montoNeto: number;
-  estado: "completada" | "pendiente" | "cancelada";
+  estado: "completada" | "pendiente" | "cancelada" | "confirmada" | "en_progreso";
   metodoPago: string;
   concepto: string;
 }
@@ -85,11 +86,14 @@ const ingresosData = {
 
 export default function IngresosPage() {
   const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { getReservasByConsultorio, getMyConsultorios } = useSupabaseStore();
   const router = useRouter();
   const [filtroEstado, setFiltroEstado] = useState<string>("todos");
   const [filtroConsultorio, setFiltroConsultorio] = useState<string>("todos");
   const [filtroFecha, setFiltroFecha] = useState<string>("mes");
   const [busqueda, setBusqueda] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [ingresosDataState, setIngresosDataState] = useState(ingresosData);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -98,12 +102,127 @@ export default function IngresosPage() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+    if (isAuthenticated && user) {
+      loadIngresosData();
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, user]);
 
-  if (isLoading) {
+  const loadIngresosData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Obtener consultorios del usuario
+      const { data: consultorios } = await getMyConsultorios();
+      if (!consultorios) return;
+
+      // Obtener reservas de todos los consultorios
+      const allReservas = [];
+      for (const consultorio of consultorios) {
+        const { data: reservas } = await getReservasByConsultorio(consultorio.id);
+        if (reservas) {
+          allReservas.push(...reservas.map(r => ({ ...r, consultorio_titulo: consultorio.titulo })));
+        }
+      }
+
+      // Calcular estadísticas
+      const hoy = new Date();
+      const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      const inicioAnio = new Date(hoy.getFullYear(), 0, 1);
+
+      const reservasHoy = allReservas.filter(r => 
+        new Date(r.fecha_inicio).toDateString() === hoy.toDateString()
+      );
+      const reservasMes = allReservas.filter(r => 
+        new Date(r.fecha_inicio) >= inicioMes
+      );
+      const reservasAnio = allReservas.filter(r => 
+        new Date(r.fecha_inicio) >= inicioAnio
+      );
+
+      const ingresosHoy = reservasHoy.reduce((sum, r) => sum + (r.total || 0), 0);
+      const ingresosMes = reservasMes.reduce((sum, r) => sum + (r.total || 0), 0);
+      const ingresosAnio = reservasAnio.reduce((sum, r) => sum + (r.total || 0), 0);
+
+      // Calcular estadísticas mensuales de los últimos 6 meses
+      const estadisticasMensuales = [];
+      for (let i = 5; i >= 0; i--) {
+        const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        const inicioMes = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+        const finMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
+        
+        const reservasDelMes = allReservas.filter(r => {
+          const fechaReserva = new Date(r.fecha_inicio);
+          return fechaReserva >= inicioMes && fechaReserva <= finMes;
+        });
+
+        const ingresosDelMes = reservasDelMes.reduce((sum, r) => sum + (r.total || 0), 0);
+        const ocupacion = reservasDelMes.length > 0 ? Math.min(100, (reservasDelMes.length / 30) * 100) : 0;
+
+        estadisticasMensuales.push({
+          mes: fecha.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }),
+          ingresos: ingresosDelMes,
+          transacciones: reservasDelMes.length,
+          ocupacion: Math.round(ocupacion)
+        });
+      }
+
+      // Convertir reservas a formato de transacciones
+      const transacciones = allReservas.map((reserva, index) => ({
+        id: index + 1,
+        fecha: reserva.fecha_inicio,
+        hora: reserva.hora_inicio,
+        consultorio: reserva.consultorio_titulo,
+        profesional: 'Usuario', // Se puede obtener del perfil si es necesario
+        duracion: `${reserva.unidades} ${reserva.tipo_reserva}`,
+        monto: reserva.total || 0,
+        comision: Math.round((reserva.total || 0) * 0.1), // 10% comisión
+        montoNeto: Math.round((reserva.total || 0) * 0.9), // 90% neto
+        estado: reserva.estado,
+        metodoPago: reserva.metodo_pago || 'Tarjeta',
+        concepto: `Reserva de ${reserva.tipo_reserva}`
+      }));
+
+      // Encontrar consultorio más rentable
+      const consultorioIngresos: { [key: string]: number } = {};
+      allReservas.forEach(r => {
+        if (!consultorioIngresos[r.consultorio_titulo]) {
+          consultorioIngresos[r.consultorio_titulo] = 0;
+        }
+        consultorioIngresos[r.consultorio_titulo] += r.total || 0;
+      });
+
+      const consultorioMasRentable = Object.keys(consultorioIngresos).reduce((a, b) => 
+        consultorioIngresos[a] > consultorioIngresos[b] ? a : b, ''
+      );
+
+      const resumen = {
+        ingresosHoy,
+        ingresosMes,
+        ingresosAnio,
+        transaccionesHoy: reservasHoy.length,
+        transaccionesMes: reservasMes.length,
+        promedioTransaccion: reservasMes.length > 0 ? ingresosMes / reservasMes.length : 0,
+        consultorioMasRentable,
+        tendenciaMes: 0, // Se puede calcular comparando con el mes anterior
+        pendientesCobro: allReservas.filter(r => r.estado === 'pendiente').reduce((sum, r) => sum + (r.total || 0), 0)
+      };
+
+      setIngresosDataState({
+        resumen,
+        estadisticasMensuales,
+        transacciones
+      });
+
+    } catch (error) {
+      console.error('Error loading ingresos data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -136,7 +255,7 @@ export default function IngresosPage() {
   }
 
   // Filtrar transacciones
-  const transaccionesFiltradas = ingresosData.transacciones.filter((transaccion: Transaccion) => {
+  const transaccionesFiltradas = ingresosDataState.transacciones.filter((transaccion: Transaccion) => {
     const cumpleEstado = filtroEstado === "todos" || transaccion.estado === filtroEstado;
     const cumpleConsultorio = filtroConsultorio === "todos" || transaccion.consultorio === filtroConsultorio;
     const cumpleBusqueda = busqueda === "" || 
@@ -150,10 +269,14 @@ export default function IngresosPage() {
     switch (estado) {
       case "completada":
         return "bg-green-50 text-green-700 border-green-200";
+      case "confirmada":
+        return "bg-blue-50 text-blue-700 border-blue-200";
       case "pendiente":
         return "bg-yellow-50 text-yellow-700 border-yellow-200";
       case "cancelada":
         return "bg-red-50 text-red-700 border-red-200";
+      case "en_progreso":
+        return "bg-purple-50 text-purple-700 border-purple-200";
       default:
         return "bg-muted text-muted-foreground border-border";
     }
@@ -163,10 +286,14 @@ export default function IngresosPage() {
     switch (estado) {
       case "completada":
         return "Completada";
+      case "confirmada":
+        return "Confirmada";
       case "pendiente":
         return "Pendiente";
       case "cancelada":
         return "Cancelada";
+      case "en_progreso":
+        return "En Progreso";
       default:
         return estado;
     }
@@ -185,7 +312,7 @@ export default function IngresosPage() {
     // Aquí se implementaría la lógica de exportación
   };
 
-  const consultoriosUnicos = [...new Set(ingresosData.transacciones.map(t => t.consultorio))];
+  const consultoriosUnicos = [...new Set(ingresosDataState.transacciones.map(t => t.consultorio))];
 
   return (
     <div className="min-h-screen bg-background">
@@ -220,8 +347,8 @@ export default function IngresosPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Ingresos Hoy</p>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ingresosData.resumen.ingresosHoy)}</p>
-                                      <p className="text-xs text-muted-foreground">{formatNumber(ingresosData.resumen.transaccionesHoy)} transacciones</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ingresosDataState.resumen.ingresosHoy)}</p>
+                                      <p className="text-xs text-muted-foreground">{formatNumber(ingresosDataState.resumen.transaccionesHoy)} transacciones</p>
                 </div>
                 <DollarSign className="h-8 w-8 text-primary" />
               </div>
@@ -233,10 +360,10 @@ export default function IngresosPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Ingresos del Mes</p>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ingresosData.resumen.ingresosMes)}</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ingresosDataState.resumen.ingresosMes)}</p>
                   <div className="flex items-center text-xs">
                     <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                    <span className="text-green-600">+{ingresosData.resumen.tendenciaMes}%</span>
+                    <span className="text-green-600">+{ingresosDataState.resumen.tendenciaMes}%</span>
                   </div>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-600" />
@@ -249,8 +376,8 @@ export default function IngresosPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Promedio/Transacción</p>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ingresosData.resumen.promedioTransaccion)}</p>
-                                      <p className="text-xs text-muted-foreground">{formatNumber(ingresosData.resumen.transaccionesMes)} este mes</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ingresosDataState.resumen.promedioTransaccion)}</p>
+                                      <p className="text-xs text-muted-foreground">{formatNumber(ingresosDataState.resumen.transaccionesMes)} este mes</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
@@ -262,7 +389,7 @@ export default function IngresosPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pendientes de Cobro</p>
-                  <p className="text-2xl font-bold text-yellow-700">{formatCurrency(ingresosData.resumen.pendientesCobro)}</p>
+                  <p className="text-2xl font-bold text-yellow-700">{formatCurrency(ingresosDataState.resumen.pendientesCobro)}</p>
                   <p className="text-xs text-muted-foreground">Por confirmar</p>
                 </div>
                 <Clock className="h-8 w-8 text-yellow-700" />
@@ -281,7 +408,7 @@ export default function IngresosPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {ingresosData.estadisticasMensuales.map((mes, index) => (
+              {ingresosDataState.estadisticasMensuales.map((mes, index) => (
                 <div key={index} className="flex items-center justify-between p-4 border border-border rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 text-center">

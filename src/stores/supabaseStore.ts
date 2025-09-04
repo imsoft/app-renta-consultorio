@@ -204,6 +204,30 @@ interface CalificacionCreate {
   relacion_precio?: number
 }
 
+interface UserStats {
+  // Estadísticas de usuario
+  reservasRealizadas: number
+  consultoriosVisitados: number
+  totalGastado: number
+  favoritosCount: number
+  
+  // Estadísticas de propietario (si aplica)
+  consultoriosRegistrados: number
+  totalReservasRecibidas: number
+  ingresosTotales: number
+  calificacionPromedio: number
+  reseñasRecibidas: number
+}
+
+interface ConsultorioStats {
+  totalReservas: number
+  calificacionPromedio: number
+  vistas: number
+  ingresosTotales: number
+  reservasEsteMes: number
+  totalCalificaciones: number
+}
+
 interface SupabaseState {
   // Estado de autenticación
   user: User | null
@@ -256,6 +280,10 @@ interface SupabaseState {
   getCalificaciones: (consultorioId: string) => Promise<{ data: Calificacion[] | null, error: unknown }>
   createCalificacion: (calificacion: CalificacionCreate) => Promise<{ data: Calificacion | null, error: unknown }>
   updateCalificacion: (id: string, updates: Partial<CalificacionCreate>) => Promise<{ data: Calificacion | null, error: unknown }>
+  
+  // Funciones de estadísticas
+  getUserStats: () => Promise<{ data: UserStats | null, error: unknown }>
+  getConsultorioStats: (consultorioId: string) => Promise<{ data: ConsultorioStats | null, error: unknown }>
   
   // Funciones de estado
   setUser: (user: User | null) => void
@@ -909,6 +937,123 @@ export const useSupabaseStore = create<SupabaseState>()(
           .single()
 
         return { data, error }
+      },
+
+      // Funciones de estadísticas
+      getUserStats: async () => {
+        const { user } = get()
+        if (!user) return { data: null, error: new Error('No user logged in') }
+
+        try {
+          // Obtener estadísticas del usuario
+          const [reservasResult, consultoriosResult, favoritosResult, calificacionesResult] = await Promise.all([
+            // Reservas del usuario
+            supabase
+              .from('reservas')
+              .select('id, estado, total')
+              .eq('usuario_id', user.id),
+            
+            // Consultorios del usuario (si es propietario)
+            supabase
+              .from('consultorios')
+              .select('id, total_reservas, calificacion_promedio')
+              .eq('propietario_id', user.id),
+            
+            // Favoritos del usuario
+            supabase
+              .from('favoritos')
+              .select('id')
+              .eq('usuario_id', user.id),
+            
+            // Calificaciones recibidas (en consultorios del usuario)
+            supabase
+              .from('calificaciones')
+              .select('puntuacion')
+              .eq('consultorio_id', supabase
+                .from('consultorios')
+                .select('id')
+                .eq('propietario_id', user.id)
+              )
+          ])
+
+          const reservas = reservasResult.data || []
+          const consultorios = consultoriosResult.data || []
+          const favoritos = favoritosResult.data || []
+          const calificaciones = calificacionesResult.data || []
+
+          // Calcular estadísticas
+          const stats = {
+            // Estadísticas de usuario
+            reservasRealizadas: reservas.length,
+            consultoriosVisitados: new Set(reservas.map(r => r.id)).size,
+            totalGastado: reservas.reduce((sum, r) => sum + (r.total || 0), 0),
+            favoritosCount: favoritos.length,
+            
+            // Estadísticas de propietario (si aplica)
+            consultoriosRegistrados: consultorios.length,
+            totalReservasRecibidas: consultorios.reduce((sum, c) => sum + (c.total_reservas || 0), 0),
+            ingresosTotales: reservas
+              .filter(r => consultorios.some(c => c.id === r.id))
+              .reduce((sum, r) => sum + (r.total || 0), 0),
+            calificacionPromedio: consultorios.length > 0 
+              ? consultorios.reduce((sum, c) => sum + (c.calificacion_promedio || 0), 0) / consultorios.length 
+              : 0,
+            reseñasRecibidas: calificaciones.length
+          }
+
+          return { data: stats, error: null }
+        } catch (error) {
+          console.error('Error getting user stats:', error)
+          return { data: null, error }
+        }
+      },
+
+      getConsultorioStats: async (consultorioId: string) => {
+        try {
+          const [consultorioResult, reservasResult, calificacionesResult] = await Promise.all([
+            // Datos del consultorio
+            supabase
+              .from('consultorios')
+              .select('total_reservas, calificacion_promedio, vistas')
+              .eq('id', consultorioId)
+              .single(),
+            
+            // Reservas del consultorio
+            supabase
+              .from('reservas')
+              .select('id, estado, total, created_at')
+              .eq('consultorio_id', consultorioId),
+            
+            // Calificaciones del consultorio
+            supabase
+              .from('calificaciones')
+              .select('puntuacion, created_at')
+              .eq('consultorio_id', consultorioId)
+              .eq('activo', true)
+          ])
+
+          const consultorio = consultorioResult.data
+          const reservas = reservasResult.data || []
+          const calificaciones = calificacionesResult.data || []
+
+          const stats = {
+            totalReservas: consultorio?.total_reservas || 0,
+            calificacionPromedio: consultorio?.calificacion_promedio || 0,
+            vistas: consultorio?.vistas || 0,
+            ingresosTotales: reservas.reduce((sum, r) => sum + (r.total || 0), 0),
+            reservasEsteMes: reservas.filter(r => {
+              const fecha = new Date(r.created_at)
+              const ahora = new Date()
+              return fecha.getMonth() === ahora.getMonth() && fecha.getFullYear() === ahora.getFullYear()
+            }).length,
+            totalCalificaciones: calificaciones.length
+          }
+
+          return { data: stats, error: null }
+        } catch (error) {
+          console.error('Error getting consultorio stats:', error)
+          return { data: null, error }
+        }
       },
 
       // Funciones de estado
