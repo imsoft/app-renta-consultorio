@@ -35,8 +35,22 @@ import {
 } from "@/components/ui/form";
 import { useAuthStore } from "@/stores/authStore";
 import { useSupabaseStore } from "@/stores/supabaseStore";
+import { uploadConsultorioImage } from "@/lib/supabase";
 import Image from "next/image";
 import HorariosManager from "@/components/HorariosManager";
+
+// Función para convertir base64 a File
+const base64ToFile = (base64String: string, fileName: string): File => {
+  const arr = base64String.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], fileName, { type: mime });
+};
 
 // Schema de validación (mismo que crear consultorio)
 const consultorioSchema = z.object({
@@ -544,9 +558,43 @@ export default function EditarConsultorioPage() {
       console.log("Imágenes existentes:", imagenesExistentes);
       console.log("Imágenes nuevas (base64):", imagenesNuevas.length);
       
-      // Por ahora, solo usar las imágenes existentes
-      // TODO: Implementar subida de nuevas imágenes al storage
-      const imagenesFinales = imagenesExistentes;
+      // Subir imágenes nuevas al storage de Supabase
+      const imagenesFinales = [...imagenesExistentes];
+      
+      if (imagenesNuevas.length > 0) {
+        console.log("Subiendo imágenes nuevas al storage...");
+        
+        try {
+          const nuevasUrls: string[] = [];
+          
+          for (let i = 0; i < imagenesNuevas.length; i++) {
+            const base64Image = imagenesNuevas[i];
+            const fileName = `imagen_${Date.now()}_${i}.jpg`;
+            const file = base64ToFile(base64Image, fileName);
+            
+            console.log(`Subiendo imagen ${i + 1}/${imagenesNuevas.length}:`, fileName);
+            const { url, error } = await uploadConsultorioImage(file, id);
+            
+            if (error) {
+              console.error(`Error al subir imagen ${fileName}:`, error);
+              setError(`Error al subir imagen ${fileName}: ${error.message}`);
+              return;
+            }
+            
+            if (url) {
+              console.log(`Imagen ${fileName} subida exitosamente:`, url);
+              nuevasUrls.push(url);
+            }
+          }
+          
+          console.log("Todas las imágenes nuevas subidas exitosamente");
+          imagenesFinales.push(...nuevasUrls);
+        } catch (error) {
+          console.error("Error al procesar imágenes:", error);
+          setError("Error al procesar las imágenes. Por favor, intenta de nuevo.");
+          return;
+        }
+      }
       
       const consultorioData = {
         titulo: data.titulo,
@@ -1222,8 +1270,8 @@ export default function EditarConsultorioPage() {
                         {/* Debug info */}
                         <div className="mt-4 text-xs text-gray-500">
                           <p>Estado actual: {uploadedImages.length} imágenes</p>
-                          <p className="text-orange-600">
-                            ⚠️ Las nuevas imágenes se guardarán en la próxima actualización
+                          <p className="text-green-600">
+                            ✅ Las nuevas imágenes se subirán automáticamente al guardar
                           </p>
                           <Button 
                             type="button" 
