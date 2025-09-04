@@ -58,7 +58,7 @@ interface Reserva {
     telefono: string;
   };
   estado: string;
-  precio_total: number;
+  total: number;
   created_at: string;
 }
 
@@ -112,7 +112,7 @@ export default function GestionarConsultorioPage() {
           hora,
           duracion,
           estado,
-          precio_total,
+          total,
           created_at,
           profesionales:profiles!reservas_profesional_id_fkey(
             nombre,
@@ -133,7 +133,7 @@ export default function GestionarConsultorioPage() {
         hora: reserva.hora,
         duracion: reserva.duracion,
         estado: reserva.estado,
-        precio_total: reserva.precio_total,
+        total: reserva.total,
         created_at: reserva.created_at,
         profesional: {
           nombre: reserva.profesionales?.nombre || 'Profesional no disponible',
@@ -348,7 +348,7 @@ export default function GestionarConsultorioPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-foreground">
-                            {formatCurrency(reserva.precio_total)}
+                            {formatCurrency(reserva.total)}
                           </p>
                           <Badge variant={getEstadoBadgeVariant(reserva.estado)}>
                             {reserva.estado}

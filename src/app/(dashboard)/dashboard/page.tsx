@@ -134,9 +134,9 @@ export default function DashboardPage() {
     // Obtener gastos del mes
     const { data: gastosMes, error: gastosError } = await supabase
       .from('reservas')
-      .select('precio_total')
-      .eq('profesional_id', user.id)
-      .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+      .select('total')
+      .eq('usuario_id', user.id)
+      .gte('fecha_inicio', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
 
     // Obtener próxima reserva
     const { data: proximaReserva, error: proximaError } = await supabase
@@ -144,13 +144,13 @@ export default function DashboardPage() {
       .select(`
         *,
         consultorios (
-          nombre
+          titulo
         )
       `)
-      .eq('profesional_id', user.id)
+      .eq('usuario_id', user.id)
       .eq('estado', 'confirmada')
-      .gte('fecha', new Date().toISOString().split('T')[0])
-      .order('fecha', { ascending: true })
+      .gte('fecha_inicio', new Date().toISOString().split('T')[0])
+      .order('fecha_inicio', { ascending: true })
       .order('hora_inicio', { ascending: true })
       .limit(1)
       .single();
@@ -161,12 +161,12 @@ export default function DashboardPage() {
       .select(`
         *,
         consultorios (
-          nombre
+          titulo
         )
       `)
-      .eq('profesional_id', user.id)
-      .lt('fecha', new Date().toISOString().split('T')[0])
-      .order('fecha', { ascending: false })
+      .eq('usuario_id', user.id)
+      .lt('fecha_inicio', new Date().toISOString().split('T')[0])
+      .order('fecha_inicio', { ascending: false })
       .limit(5);
 
     if (reservasError) console.error('Error fetching reservas:', reservasError);
@@ -178,18 +178,18 @@ export default function DashboardPage() {
     setDashboardData({
       reservasActivas: reservasActivas?.length || 0,
       consultoriosFavoritos: favoritos?.length || 0,
-      gastosMes: gastosMes?.reduce((sum, item) => sum + (item.precio_total || 0), 0) || 0,
+      gastosMes: gastosMes?.reduce((sum, item) => sum + (item.total || 0), 0) || 0,
       proximaReserva: proximaReserva ? {
-        consultorio: proximaReserva.consultorios?.nombre || 'Consultorio',
-        fecha: new Date(proximaReserva.fecha).toLocaleDateString('es-ES'),
+        consultorio: proximaReserva.consultorios?.titulo || 'Consultorio',
+        fecha: new Date(proximaReserva.fecha_inicio).toLocaleDateString('es-ES'),
         hora: proximaReserva.hora_inicio,
         duracion: `${proximaReserva.duracion_horas} horas`
       } : null,
       historialReservas: historial?.map(item => ({
         id: item.id,
-        consultorio: item.consultorios?.nombre || 'Consultorio',
-        fecha: new Date(item.fecha).toLocaleDateString('es-ES'),
-        precio: item.precio_total || 0,
+        consultorio: item.consultorios?.titulo || 'Consultorio',
+        fecha: new Date(item.fecha_inicio).toLocaleDateString('es-ES'),
+        precio: item.total || 0,
         estado: item.estado
       })) || []
     });
@@ -211,11 +211,10 @@ export default function DashboardPage() {
       .select(`
         *,
         consultorios (
-          nombre
+          titulo
         ),
         profiles (
-          nombre,
-          apellidos
+          full_name
         )
       `)
       .eq('consultorios.propietario_id', user.id)
@@ -224,7 +223,7 @@ export default function DashboardPage() {
     // Obtener ingresos del mes
     const { data: ingresosMes, error: ingresosError } = await supabase
       .from('reservas')
-      .select('precio_total')
+      .select('total')
       .eq('consultorios.propietario_id', user.id)
       .eq('estado', 'confirmada')
       .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
@@ -281,11 +280,11 @@ export default function DashboardPage() {
     setOwnerDashboardData({
       consultoriosActivos: consultorios?.length || 0,
       reservasPendientes: reservasPendientes?.length || 0,
-      ingresosMes: ingresosMes?.reduce((sum, item) => sum + (item.precio_total || 0), 0) || 0,
+              ingresosMes: ingresosMes?.reduce((sum, item) => sum + (item.total || 0), 0) || 0,
       proximaReserva: proximaReserva ? {
-        consultorio: proximaReserva.consultorios?.nombre || 'Consultorio',
-        profesional: `${proximaReserva.profiles?.nombre || ''} ${proximaReserva.profiles?.apellidos || ''}`.trim(),
-        fecha: new Date(proximaReserva.fecha).toLocaleDateString('es-ES'),
+        consultorio: proximaReserva.consultorios?.titulo || 'Consultorio',
+        profesional: proximaReserva.profiles?.full_name || 'Usuario',
+        fecha: new Date(proximaReserva.fecha_inicio).toLocaleDateString('es-ES'),
         hora: proximaReserva.hora_inicio,
         duracion: `${proximaReserva.duracion_horas} horas`
       } : null,

@@ -30,7 +30,7 @@ interface Reserva {
   fecha: string;
   hora_inicio: string;
   duracion_horas: number;
-  precio_total: number;
+  total: number;
   estado: string;
   notas: string;
   consultorios: {
@@ -168,7 +168,7 @@ export default function ReservasPage() {
   const totalReservas = reservas.length;
   const reservasConfirmadas = reservas.filter(r => r.estado === 'confirmada').length;
   const reservasPendientes = reservas.filter(r => r.estado === 'pendiente').length;
-  const ingresosTotales = reservas.reduce((sum, r) => sum + (r.precio_total || 0), 0);
+      const ingresosTotales = reservas.reduce((sum, r) => sum + (r.total || 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -325,7 +325,7 @@ export default function ReservasPage() {
                         <div className="flex items-center space-x-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm font-medium text-foreground">
-                            ${reserva.precio_total?.toLocaleString()}
+                            ${reserva.total?.toLocaleString()}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
