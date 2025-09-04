@@ -11,14 +11,9 @@ import * as z from "zod";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
-  DollarSign,
-  Clock,
-  Building,
   CheckCircle,
   AlertCircle,
-  Save,
-  Upload,
-  X
+  Upload
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -36,8 +31,9 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useSupabaseStore } from "@/stores/supabaseStore";
 import { uploadConsultorioImage } from "@/lib/supabase";
-import Image from "next/image";
+
 import HorariosManager from "@/components/HorariosManager";
+import { ImagePreview } from "@/components/ImagePreview";
 
 // Función para convertir base64 a File
 const base64ToFile = (base64String: string, fileName: string): File => {
@@ -1290,46 +1286,13 @@ export default function EditarConsultorioPage() {
                       </div>
                     </div>
 
-                    {uploadedImages.length > 0 && (
-                      <div>
-                        <h3 className="font-medium mb-3">Imágenes subidas ({uploadedImages.length})</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {uploadedImages.map((image, index) => (
-                            <div key={index} className="relative group">
-                              <Image
-                                src={image}
-                                alt={`Imagen ${index + 1}`}
-                                width={200}
-                                height={200}
-                                className="w-full h-32 object-cover rounded-lg"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                              {index === 0 && (
-                                <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                                  Principal
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                          <div className="flex items-start">
-                            <CheckCircle className="h-5 w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                            <div className="text-sm text-green-800">
-                              <p className="font-medium mb-1">¡Perfecto! Imágenes listas</p>
-                              <p>La primera imagen será la principal y se mostrará en los resultados de búsqueda.</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    <ImagePreview
+                      images={uploadedImages}
+                      onRemoveImage={removeImage}
+                      onRemoveAll={() => setUploadedImages([])}
+                      title="Imágenes del consultorio"
+                    />
+
                   </div>
                 </CardContent>
               </Card>
