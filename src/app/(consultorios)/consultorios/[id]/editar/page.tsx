@@ -563,7 +563,7 @@ export default function EditarConsultorioPage() {
         especialidades: data.especialidades,
         servicios: data.servicios,
         equipamiento: data.equipamiento,
-        horarios: data.horarios,
+        // horarios: data.horarios, // Este campo no existe en la tabla consultorios
         permite_mascotas: data.permite_mascotas,
         estacionamiento: data.estacionamiento,
         wifi: data.wifi,
@@ -572,7 +572,13 @@ export default function EditarConsultorioPage() {
         imagen_principal: imagenesFinales[0] || undefined,
       };
 
-      console.log("Actualizando consultorio con datos:", consultorioData);
+      console.log("=== DATOS A ENVIAR ===");
+      console.log("consultorioData completo:", consultorioData);
+      console.log("Campos individuales:");
+      Object.entries(consultorioData).forEach(([key, value]) => {
+        console.log(`${key}:`, value, `(tipo: ${typeof value})`);
+      });
+      console.log("======================");
 
       setLoading(true);
       const { data: updatedConsultorio, error } = await updateConsultorio(id, consultorioData);
