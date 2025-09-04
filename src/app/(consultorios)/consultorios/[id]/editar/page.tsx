@@ -252,10 +252,15 @@ export default function EditarConsultorioPage() {
         }
         
         if (data) {
+          console.log("Datos del consultorio cargados:", data);
           setConsultorioData(data);
-          setUploadedImages(data.imagenes || []);
           
-                     // Llenar el formulario con los datos existentes
+          // Cargar imágenes existentes
+          const imagenesExistentes = data.imagenes || [];
+          console.log("Imágenes existentes:", imagenesExistentes);
+          setUploadedImages(imagenesExistentes);
+          
+          // Llenar el formulario con los datos existentes
            form.reset({
              titulo: data.titulo || "",
              descripcion: data.descripcion || "",
@@ -374,22 +379,37 @@ export default function EditarConsultorioPage() {
   }, [isAuthenticated, router]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("handleImageUpload llamado");
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    console.log("Archivos seleccionados:", files);
+    if (!files || files.length === 0) {
+      console.log("No se seleccionaron archivos");
+      return;
+    }
 
     const newImages: string[] = [];
     let processedFiles = 0;
     let errorCount = 0;
 
     const checkCompletion = () => {
+      console.log(`checkCompletion: processedFiles=${processedFiles}, files.length=${files.length}, errorCount=${errorCount}`);
       if (processedFiles === files.length) {
         if (errorCount === 0) {
-          setUploadedImages(prev => [...prev, ...newImages]);
+          console.log("Agregando nuevas imágenes:", newImages);
+          setUploadedImages(prev => {
+            const nuevas = [...prev, ...newImages];
+            console.log("Nuevo estado de imágenes:", nuevas);
+            return nuevas;
+          });
+        } else {
+          console.log("Errores al procesar imágenes:", errorCount);
         }
       }
     };
 
     Array.from(files).forEach((file, index) => {
+      console.log(`Procesando archivo ${index}:`, file.name, file.type, file.size);
+      
       if (!file.type.startsWith('image/')) {
         console.error(`Archivo ${file.name} no es una imagen`);
         errorCount++;
@@ -401,6 +421,7 @@ export default function EditarConsultorioPage() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result;
+        console.log(`Archivo ${file.name} leído exitosamente, tamaño:`, typeof result === 'string' ? result.length : 'no string');
         if (typeof result === 'string') {
           newImages.push(result);
         }
@@ -415,6 +436,7 @@ export default function EditarConsultorioPage() {
         checkCompletion();
       };
 
+      console.log(`Iniciando lectura del archivo ${file.name}`);
       reader.readAsDataURL(file);
     });
 
@@ -1161,6 +1183,22 @@ export default function EditarConsultorioPage() {
                             Seleccionar imágenes
                           </Button>
                         </label>
+                        
+                        {/* Debug info */}
+                        <div className="mt-4 text-xs text-gray-500">
+                          <p>Estado actual: {uploadedImages.length} imágenes</p>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              console.log("Estado actual de uploadedImages:", uploadedImages);
+                              console.log("Estado actual de consultorioData:", consultorioData);
+                            }}
+                          >
+                            Debug Estado
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
