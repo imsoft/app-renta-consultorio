@@ -73,8 +73,9 @@ export default function MisConsultoriosPage() {
   const [sortBy, setSortBy] = useState("titulo");
   const [consultorios, setConsultorios] = useState<ConsultorioUsuario[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { user, isAuthenticated } = useAuthStore();
-  const { getMyConsultorios } = useSupabaseStore();
+  const { getMyConsultorios, deleteConsultorio } = useSupabaseStore();
 
   // Función para obtener consultorios del usuario
   const fetchConsultorios = async () => {
@@ -96,6 +97,33 @@ export default function MisConsultoriosPage() {
       console.error('Error fetching consultorios:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para eliminar un consultorio
+  const handleDeleteConsultorio = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este consultorio? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+      const { error } = await deleteConsultorio(id);
+      
+      if (error) {
+        console.error('Error deleting consultorio:', error);
+        alert('Error al eliminar el consultorio. Por favor, intenta de nuevo.');
+        return;
+      }
+      
+      // Eliminar el consultorio del estado local
+      setConsultorios(prev => prev.filter(c => c.id !== id));
+      alert('Consultorio eliminado exitosamente');
+    } catch (error) {
+      console.error('Error deleting consultorio:', error);
+      alert('Error al eliminar el consultorio. Por favor, intenta de nuevo.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -426,9 +454,22 @@ export default function MisConsultoriosPage() {
                                   Editar
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Eliminar
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => handleDeleteConsultorio(consultorio.id)}
+                                disabled={deletingId === consultorio.id}
+                              >
+                                {deletingId === consultorio.id ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    Eliminando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Eliminar
+                                  </>
+                                )}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
