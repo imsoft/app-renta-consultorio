@@ -81,11 +81,8 @@ export default function ReservasPage() {
           )
         `);
 
-      // Filtrar por tipo de usuario
-      if (user.role === "user") {
-        // Los usuarios pueden ver tanto sus reservas como las de sus consultorios
-        query = query.or(`usuario_id.eq.${user.id},consultorios.propietario_id.eq.${user.id}`);
-      }
+      // Filtrar por tipo de usuario - todos los usuarios pueden ver sus reservas
+      query = query.eq('usuario_id', user.id);
 
       // Aplicar filtros
       if (statusFilter !== "todos") {

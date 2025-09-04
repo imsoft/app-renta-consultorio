@@ -1,10 +1,10 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { useState } from "react";
-
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
+
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,6 +39,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuthStore } from "@/stores/authStore";
+import { useSupabaseStore } from "@/stores/supabaseStore";
 import Link from "next/link";
 
 // Schema de validación para el perfil
@@ -115,42 +116,113 @@ function PerfilContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const { user } = useAuthStore();
+  const { getProfile, updateProfile } = useSupabaseStore();
+  const [profileData, setProfileData] = useState<ProfileFormValues | null>(null);
 
-  const profileData = getProfileData(user?.role || "professional");
+  // Cargar datos del perfil
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user) {
+        const { data } = await getProfile();
+        if (data) {
+          // Mapear datos de Supabase a formato del formulario
+          setProfileData({
+            nombre: data.nombre || "",
+            apellidos: data.apellidos || "",
+            email: data.email || "",
+            telefono: data.telefono || "",
+            fechaNacimiento: data.fecha_nacimiento || "",
+            direccion: data.direccion || "",
+            ciudad: data.ciudad || "",
+            codigoPostal: data.codigo_postal || "",
+            especialidad: data.especialidad || "",
+            experiencia: "",
+            cedula: data.cedula_profesional || "",
+            descripcion: data.biografia || "",
+          });
+        } else {
+          // Usar datos por defecto si no hay perfil
+          setProfileData(getProfileData(user?.role || "professional"));
+        }
+      }
+    };
+    loadProfile();
+  }, [user, getProfile]);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      nombre: profileData.nombre,
-      apellidos: profileData.apellidos,
-      email: profileData.email,
-      telefono: profileData.telefono,
-      fechaNacimiento: profileData.fechaNacimiento,
-      direccion: profileData.direccion,
-      ciudad: profileData.ciudad,
-      codigoPostal: profileData.codigoPostal,
-      especialidad: profileData.especialidad,
-      experiencia: profileData.experiencia,
-      cedula: profileData.cedula,
-      descripcion: profileData.descripcion,
+      nombre: profileData?.nombre || "",
+      apellidos: profileData?.apellidos || "",
+      email: profileData?.email || "",
+      telefono: profileData?.telefono || "",
+      fechaNacimiento: profileData?.fechaNacimiento || "",
+      direccion: profileData?.direccion || "",
+      ciudad: profileData?.ciudad || "",
+      codigoPostal: profileData?.codigoPostal || "",
+      especialidad: profileData?.especialidad || "",
+      experiencia: profileData?.experiencia || "",
+      cedula: profileData?.cedula || "",
+      descripcion: profileData?.descripcion || "",
     },
   });
+
+  // Actualizar el formulario cuando se carguen los datos
+  useEffect(() => {
+    if (profileData) {
+      form.reset(profileData);
+    }
+  }, [profileData, form]);
 
   const onSubmit = async (data: ProfileFormValues) => {
     setError("");
     setSuccess("");
+    setLoading(true);
     
     try {
-      // Simular actualización de perfil
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { error } = await updateProfile({
+        nombre: data.nombre,
+        apellidos: data.apellidos,
+        telefono: data.telefono,
+        direccion: data.direccion,
+        ciudad: data.ciudad,
+        especialidad: data.especialidad,
+        biografia: data.descripcion,
+      });
       
-      console.log("Perfil actualizado:", data);
+      if (error) {
+        throw error;
+      }
+      
       setSuccess("¡Perfil actualizado exitosamente!");
       setIsEditing(false);
+      
+      // Recargar datos del perfil
+      const { data: updatedProfile } = await getProfile();
+      if (updatedProfile) {
+        // Mapear datos de Supabase a formato del formulario
+        setProfileData({
+          nombre: updatedProfile.nombre || "",
+          apellidos: updatedProfile.apellidos || "",
+          email: updatedProfile.email || "",
+          telefono: updatedProfile.telefono || "",
+          fechaNacimiento: updatedProfile.fecha_nacimiento || "",
+          direccion: updatedProfile.direccion || "",
+          ciudad: updatedProfile.ciudad || "",
+          codigoPostal: updatedProfile.codigo_postal || "",
+          especialidad: updatedProfile.especialidad || "",
+          experiencia: "",
+          cedula: updatedProfile.cedula_profesional || "",
+          descripcion: updatedProfile.biografia || "",
+        });
+      }
     } catch (err) {
       console.error("Error al actualizar perfil:", err);
       setError("Error al actualizar el perfil. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -229,13 +301,13 @@ function PerfilContent() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">
-                          {profileData.nombre} {profileData.apellidos}
+                          {profileData?.nombre || ""} {profileData?.apellidos || ""}
                         </h3>
                         <p className="text-muted-foreground">
-                          {profileData.tipo === "professional" ? "Profesional de la salud" : "Propietario"}
+                          {user?.role === "user" ? "Usuario" : "Administrador"}
                         </p>
                         <Badge variant="secondary" className="mt-1">
-                          Miembro desde {new Date(profileData.fechaRegistro).toLocaleDateString('es-ES', { 
+                          Miembro desde {new Date().toLocaleDateString('es-ES', { 
                             year: 'numeric', 
                             month: 'long' 
                           })}
@@ -369,7 +441,7 @@ function PerfilContent() {
                       />
                     </div>
 
-                    {profileData.tipo === "professional" && (
+                    {user?.role === "user" && (
                       <>
                         <div className="grid sm:grid-cols-2 gap-4">
                           <FormField
@@ -449,7 +521,7 @@ function PerfilContent() {
                           <X className="h-4 w-4 mr-2" />
                           Cancelar
                         </Button>
-                        <Button type="submit" disabled={form.formState.isSubmitting}>
+                        <Button type="submit" disabled={loading || form.formState.isSubmitting}>
                           {form.formState.isSubmitting ? (
                             <>
                               <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -478,21 +550,21 @@ function PerfilContent() {
                 <CardTitle>Estadísticas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {profileData.tipo === "professional" ? (
+                {user?.role === "user" ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <Building className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Consultorios visitados</span>
                       </div>
-                      <span className="font-semibold">{profileData.consultoriosVisitados}</span>
+                      <span className="font-semibold">0</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <Calendar className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Reservas realizadas</span>
                       </div>
-                      <span className="font-semibold">{profileData.reservasRealizadas}</span>
+                      <span className="font-semibold">0</span>
                     </div>
                   </>
                 ) : (
@@ -502,14 +574,14 @@ function PerfilContent() {
                         <Building className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Consultorios registrados</span>
                       </div>
-                      <span className="font-semibold">{profileData.consultoriosRegistrados}</span>
+                      <span className="font-semibold">0</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <CreditCard className="h-5 w-5 text-primary mr-2" />
                         <span className="text-sm">Ingresos totales</span>
                       </div>
-                      <span className="font-semibold">${(profileData.ingresosTotales || 0).toLocaleString()}</span>
+                      <span className="font-semibold">$0</span>
                     </div>
                   </>
                 )}
@@ -518,14 +590,14 @@ function PerfilContent() {
                     <Star className="h-5 w-5 text-yellow-500 mr-2" />
                     <span className="text-sm">Calificación promedio</span>
                   </div>
-                  <span className="font-semibold">{profileData.calificacionPromedio}</span>
+                  <span className="font-semibold">0.0</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <User className="h-5 w-5 text-primary mr-2" />
                     <span className="text-sm">Reseñas recibidas</span>
                   </div>
-                  <span className="font-semibold">{profileData.reseñasRecibidas}</span>
+                  <span className="font-semibold">0</span>
                 </div>
               </CardContent>
             </Card>

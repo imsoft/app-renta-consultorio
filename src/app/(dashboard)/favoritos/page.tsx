@@ -29,9 +29,11 @@ interface Favorito {
   consultorio_id: string;
   consultorios: {
     id: string;
-    nombre: string;
-    ubicacion: string;
-    precio_hora: number;
+    titulo: string;
+    direccion: string;
+    ciudad: string;
+    estado: string;
+    precio_por_hora: number;
     horario_apertura: string;
     horario_cierre: string;
     especialidades: string[];
@@ -69,9 +71,11 @@ export default function FavoritosPage() {
           consultorio_id,
           consultorios (
             id,
-            nombre,
-            ubicacion,
-            precio_hora,
+            titulo,
+            direccion,
+            ciudad,
+            estado,
+            precio_por_hora,
             horario_apertura,
             horario_cierre,
             especialidades,
@@ -115,8 +119,9 @@ export default function FavoritosPage() {
       filtrados = filtrados.filter(favorito => {
         const consultorio = favorito.consultorios[0];
         if (!consultorio) return false;
-        return consultorio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               consultorio.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        return consultorio.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               consultorio.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               consultorio.ciudad.toLowerCase().includes(searchTerm.toLowerCase()) ||
                consultorio.especialidades.some(esp => 
                  esp.toLowerCase().includes(searchTerm.toLowerCase())
                );
@@ -136,7 +141,7 @@ export default function FavoritosPage() {
       filtrados = filtrados.filter(favorito => {
         const consultorio = favorito.consultorios[0];
         if (!consultorio) return false;
-        const precio = consultorio.precio_hora;
+        const precio = consultorio.precio_por_hora;
         switch (precioFilter) {
           case "economico":
             return precio < 500;
@@ -158,9 +163,9 @@ export default function FavoritosPage() {
       
       switch (ordenFilter) {
         case "nombre":
-          return consultorioA.nombre.localeCompare(consultorioB.nombre);
+          return consultorioA.titulo.localeCompare(consultorioB.titulo);
         case "precio":
-          return consultorioA.precio_hora - consultorioB.precio_hora;
+          return consultorioA.precio_por_hora - consultorioB.precio_por_hora;
         case "calificacion":
           return (consultorioB.calificacion_promedio || 0) - (consultorioA.calificacion_promedio || 0);
         case "distancia":
@@ -177,7 +182,7 @@ export default function FavoritosPage() {
 
   const totalFavoritos = favoritos.length;
   const precioPromedio = favoritos.length > 0 
-    ? Math.round(favoritos.reduce((sum, f) => sum + (f.consultorios[0]?.precio_hora || 0), 0) / favoritos.length)
+    ? Math.round(favoritos.reduce((sum, f) => sum + (f.consultorios[0]?.precio_por_hora || 0), 0) / favoritos.length)
     : 0;
   const calificacionPromedio = favoritos.length > 0
     ? Math.round((favoritos.reduce((sum, f) => sum + (f.consultorios[0]?.calificacion_promedio || 0), 0) / favoritos.length) * 10) / 10
@@ -341,7 +346,7 @@ export default function FavoritosPage() {
                       const consultorio = favorito.consultorios[0];
                       if (!consultorio) return null;
                       
-                      const precioLabel = getPrecioLabel(consultorio.precio_hora);
+                      const precioLabel = getPrecioLabel(consultorio.precio_por_hora);
                       const distancia = calcularDistancia();
                       const ultimaVisita = new Date(favorito.created_at).toLocaleDateString('es-ES');
                       
@@ -349,7 +354,7 @@ export default function FavoritosPage() {
                         <tr key={favorito.id} className="border-b hover:bg-muted/30">
                           <td className="py-4 px-4">
                             <div>
-                              <h4 className="font-medium text-foreground">{consultorio.nombre}</h4>
+                              <h4 className="font-medium text-foreground">{consultorio.titulo}</h4>
                               <p className="text-sm text-muted-foreground">
                                 {consultorio.horario_apertura} - {consultorio.horario_cierre}
                               </p>
@@ -359,13 +364,13 @@ export default function FavoritosPage() {
                             <div className="flex items-center space-x-2">
                               <MapPin className="h-4 w-4 text-muted-foreground" />
                               <span className="text-sm">
-                                {consultorio.ubicacion} ({distancia} km)
+                                {consultorio.direccion}, {consultorio.ciudad}, {consultorio.estado} ({distancia} km)
                               </span>
                             </div>
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center space-x-2">
-                              <span className="font-medium">${consultorio.precio_hora}/hora</span>
+                              <span className="font-medium">${consultorio.precio_por_hora}/hora</span>
                               <Badge className={precioLabel.color}>{precioLabel.text}</Badge>
                             </div>
                           </td>
