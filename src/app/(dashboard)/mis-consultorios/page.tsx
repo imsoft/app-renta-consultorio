@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -74,11 +74,11 @@ export default function MisConsultoriosPage() {
   const [consultorios, setConsultorios] = useState<ConsultorioUsuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const { getMyConsultorios, deleteConsultorio } = useSupabaseStore();
 
   // Función para obtener consultorios del usuario
-  const fetchConsultorios = async () => {
+  const fetchConsultorios = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -98,7 +98,7 @@ export default function MisConsultoriosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, getMyConsultorios]);
 
   // Función para eliminar un consultorio
   const handleDeleteConsultorio = async (id: string) => {
@@ -127,12 +127,66 @@ export default function MisConsultoriosPage() {
     }
   };
 
+  // Filtrar y ordenar consultorios (optimizado con useMemo)
+  const filteredConsultorios = useMemo(() => {
+    return consultorios
+      .filter(consultorio => {
+        const matchesSearch = consultorio.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             consultorio.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             consultorio.ciudad.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === "todos" || 
+                             (statusFilter === "activo" && consultorio.activo) ||
+                             (statusFilter === "inactivo" && !consultorio.activo);
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "titulo":
+            return a.titulo.localeCompare(b.titulo);
+          case "precio":
+            return b.precio_por_hora - a.precio_por_hora;
+          case "calificacion":
+            return (b.calificacion_promedio || 0) - (a.calificacion_promedio || 0);
+          case "reservas":
+            return (b.total_reservas || 0) - (a.total_reservas || 0);
+          case "fecha":
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          default:
+            return 0;
+        }
+      });
+  }, [consultorios, searchTerm, statusFilter, sortBy]);
+
+  // Estadísticas optimizadas con useMemo
+  const stats = useMemo(() => ({
+    total: consultorios.length,
+    activos: consultorios.filter(c => c.activo).length,
+    totalReservas: consultorios.reduce((sum, c) => sum + (c.total_reservas || 0), 0),
+    calificacionPromedio: consultorios.length > 0 
+      ? (consultorios.reduce((sum, c) => sum + (c.calificacion_promedio || 0), 0) / consultorios.length).toFixed(1)
+      : '0.0'
+  }), [consultorios]);
+
   // Cargar consultorios cuando el usuario esté autenticado
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !authLoading) {
       fetchConsultorios();
+    } else if (!isAuthenticated && !authLoading) {
+      setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, authLoading, fetchConsultorios]);
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Verificar si el usuario está autenticado
   if (!isAuthenticated) {
@@ -155,34 +209,6 @@ export default function MisConsultoriosPage() {
       </div>
     );
   }
-
-  // Filtrar y ordenar consultorios
-  const filteredConsultorios = consultorios
-    .filter(consultorio => {
-      const matchesSearch = consultorio.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           consultorio.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           consultorio.ciudad.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "todos" || 
-                           (statusFilter === "activo" && consultorio.activo) ||
-                           (statusFilter === "inactivo" && !consultorio.activo);
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "titulo":
-          return a.titulo.localeCompare(b.titulo);
-        case "precio":
-          return b.precio_por_hora - a.precio_por_hora;
-        case "calificacion":
-          return (b.calificacion_promedio || 0) - (a.calificacion_promedio || 0);
-        case "reservas":
-          return (b.total_reservas || 0) - (a.total_reservas || 0);
-        case "fecha":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        default:
-          return 0;
-      }
-    });
 
   const getStatusBadge = (estado: string) => {
     switch (estado) {
@@ -243,7 +269,7 @@ export default function MisConsultoriosPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total consultorios</p>
-                  <p className="text-2xl font-bold text-foreground">{formatNumber(consultorios.length)}</p>
+                  <p className="text-2xl font-bold text-foreground">{formatNumber(stats.total)}</p>
                 </div>
                 <Building className="h-8 w-8 text-primary" />
               </div>
@@ -255,7 +281,7 @@ export default function MisConsultoriosPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Consultorios activos</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {formatNumber(consultorios.filter(c => c.activo).length)}
+                    {formatNumber(stats.activos)}
                   </p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-500" />
@@ -268,7 +294,7 @@ export default function MisConsultoriosPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total reservas</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {formatNumber(consultorios.reduce((sum, c) => sum + (c.total_reservas || 0), 0))}
+                    {formatNumber(stats.totalReservas)}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-primary" />
@@ -281,10 +307,7 @@ export default function MisConsultoriosPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Calificación promedio</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {consultorios.length > 0 
-                      ? (consultorios.reduce((sum, c) => sum + (c.calificacion_promedio || 0), 0) / consultorios.length).toFixed(1)
-                      : '0.0'
-                    }
+                    {stats.calificacionPromedio}
                   </p>
                 </div>
                 <Star className="h-8 w-8 text-green-500" />
