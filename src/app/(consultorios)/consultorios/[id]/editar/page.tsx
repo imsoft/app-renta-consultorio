@@ -379,30 +379,38 @@ export default function EditarConsultorioPage() {
   }, [isAuthenticated, router]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("handleImageUpload llamado");
+    console.log("=== handleImageUpload llamado ===");
     const files = event.target.files;
     console.log("Archivos seleccionados:", files);
+    console.log("Número de archivos:", files?.length);
+    
     if (!files || files.length === 0) {
       console.log("No se seleccionaron archivos");
       return;
     }
+    
+    console.log("Estado actual de uploadedImages antes de procesar:", uploadedImages);
 
     const newImages: string[] = [];
     let processedFiles = 0;
     let errorCount = 0;
 
     const checkCompletion = () => {
-      console.log(`checkCompletion: processedFiles=${processedFiles}, files.length=${files.length}, errorCount=${errorCount}`);
+      console.log(`=== checkCompletion ===`);
+      console.log(`processedFiles=${processedFiles}, files.length=${files.length}, errorCount=${errorCount}`);
+      console.log(`newImages acumuladas:`, newImages);
+      
       if (processedFiles === files.length) {
         if (errorCount === 0) {
-          console.log("Agregando nuevas imágenes:", newImages);
+          console.log("✅ Agregando nuevas imágenes:", newImages);
           setUploadedImages(prev => {
             const nuevas = [...prev, ...newImages];
-            console.log("Nuevo estado de imágenes:", nuevas);
+            console.log("🔄 Estado anterior:", prev);
+            console.log("🆕 Nuevo estado de imágenes:", nuevas);
             return nuevas;
           });
         } else {
-          console.log("Errores al procesar imágenes:", errorCount);
+          console.log("❌ Errores al procesar imágenes:", errorCount);
         }
       }
     };
@@ -441,6 +449,10 @@ export default function EditarConsultorioPage() {
     });
 
     event.target.value = '';
+    
+    // Log adicional para verificar que la función se completó
+    console.log("=== handleImageUpload completado ===");
+    console.log("Archivos enviados para procesamiento:", files.length);
   };
 
   const removeImage = (index: number) => {
@@ -1174,15 +1186,21 @@ export default function EditarConsultorioPage() {
                           multiple
                           accept="image/*"
                           onChange={handleImageUpload}
-                          className="hidden"
+                          className="absolute opacity-0 w-0 h-0"
                           id="image-upload"
                         />
-                        <label htmlFor="image-upload">
-                          <Button type="button" variant="outline" className="cursor-pointer">
-                            <Upload className="h-4 w-4 mr-2" />
-                            Seleccionar imágenes
-                          </Button>
-                        </label>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="cursor-pointer"
+                          onClick={() => {
+                            console.log("Botón clickeado, activando input de archivos");
+                            document.getElementById('image-upload')?.click();
+                          }}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Seleccionar imágenes
+                        </Button>
                         
                         {/* Debug info */}
                         <div className="mt-4 text-xs text-gray-500">
@@ -1194,6 +1212,8 @@ export default function EditarConsultorioPage() {
                             onClick={() => {
                               console.log("Estado actual de uploadedImages:", uploadedImages);
                               console.log("Estado actual de consultorioData:", consultorioData);
+                              console.log("Tipo de uploadedImages:", typeof uploadedImages);
+                              console.log("Es array:", Array.isArray(uploadedImages));
                             }}
                           >
                             Debug Estado
