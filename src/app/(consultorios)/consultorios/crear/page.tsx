@@ -39,10 +39,24 @@ import {
 } from "@/components/ui/form";
 import { useAuthStore } from "@/stores/authStore";
 import { useSupabaseStore } from "@/stores/supabaseStore";
+import { uploadConsultorioImage } from "@/lib/supabase";
 import Image from "next/image";
 import { DebugInfo } from "@/components/DebugInfo";
 import HorariosManager from "@/components/HorariosManager";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+
+// Función para convertir base64 a File
+const base64ToFile = (base64String: string, fileName: string): File => {
+  const arr = base64String.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], fileName, { type: mime });
+};
 
 // Schema de validación para el formulario de consultorio
 const consultorioSchema = z.object({
@@ -169,7 +183,7 @@ const estadosOptions = [
 function CrearConsultorioPageContent() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-  const { createConsultorio, loading } = useSupabaseStore();
+  const { createConsultorio, updateConsultorio, loading } = useSupabaseStore();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -517,6 +531,7 @@ function CrearConsultorioPageContent() {
       // Limpiar campos faltantes si no hay errores
       setCamposFaltantes([]);
 
+      // Crear el consultorio primero sin imágenes
       const consultorioData = {
         titulo: data.titulo || "Consultorio sin título",
         descripcion: data.descripcion || "Sin descripción",
@@ -536,19 +551,19 @@ function CrearConsultorioPageContent() {
         estacionamiento: data.estacionamiento || false,
         wifi: data.wifi || true,
         aire_acondicionado: data.aire_acondicionado || false,
-        imagenes: uploadedImages,
-        imagen_principal: uploadedImages[0] || undefined,
+        imagenes: [], // Inicialmente vacío
+        imagen_principal: undefined,
       };
 
       console.log("Creando consultorio con datos:", consultorioData);
 
-      const { data: newConsultorio, error } = await createConsultorio(consultorioData);
+      const { data: newConsultorio, error: createError } = await createConsultorio(consultorioData);
 
-      if (error) {
-        console.error("Error al crear consultorio:", error);
+      if (createError) {
+        console.error("Error al crear consultorio:", createError);
         
         // Proporcionar mensajes de error más específicos
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = createError instanceof Error ? createError.message : String(createError);
         if (errorMessage.includes('permission')) {
           setError("No tienes permisos para crear consultorios. Verifica tu rol de usuario.");
         } else if (errorMessage.includes('storage')) {
@@ -564,10 +579,56 @@ function CrearConsultorioPageContent() {
         return;
       }
 
-      setSuccess("¡Consultorio creado exitosamente! Redirigiendo...");
-      setTimeout(() => {
-        router.push(`/consultorios/${newConsultorio.id}`);
-      }, 2000);
+      // Ahora subir las imágenes al storage usando el ID del consultorio
+      console.log("Subiendo imágenes al storage...");
+      const imagenesUrls: string[] = [];
+      
+      try {
+        for (let i = 0; i < uploadedImages.length; i++) {
+          const base64Image = uploadedImages[i];
+          const fileName = `imagen_${Date.now()}_${i}.jpg`;
+          const file = base64ToFile(base64Image, fileName);
+          
+          console.log(`Subiendo imagen ${i + 1}/${uploadedImages.length}:`, fileName);
+          
+          const { url, error: uploadError } = await uploadConsultorioImage(file, newConsultorio.id);
+          
+          if (uploadError) {
+            console.error(`Error al subir imagen ${fileName}:`, uploadError);
+            setError(`Error al subir imagen ${fileName}: ${uploadError.message}`);
+            return;
+          }
+          
+          if (url) {
+            console.log(`Imagen ${fileName} subida exitosamente:`, url);
+            imagenesUrls.push(url);
+          }
+        }
+        
+        console.log("Todas las imágenes subidas exitosamente");
+        
+        // Actualizar el consultorio con las URLs de las imágenes
+        const { error: updateError } = await updateConsultorio(newConsultorio.id, {
+          imagenes: imagenesUrls,
+          imagen_principal: imagenesUrls[0] || undefined,
+        });
+        
+        if (updateError) {
+          console.error("Error al actualizar consultorio con imágenes:", updateError);
+          setError("Error al actualizar el consultorio con las imágenes.");
+          return;
+        }
+        
+        setSuccess("¡Consultorio creado exitosamente con todas las imágenes!");
+        setTimeout(() => {
+          router.push(`/consultorios/${newConsultorio.id}`);
+        }, 2000);
+        
+      } catch (error) {
+        console.error("Error al procesar imágenes:", error);
+        setError("Error al procesar las imágenes. Por favor, intenta de nuevo.");
+        return;
+      }
 
     } catch (error) {
       console.error("Error inesperado:", error);
