@@ -27,19 +27,20 @@ export const dynamic = 'force-dynamic';
 
 interface Reserva {
   id: string;
-  fecha: string;
+  fecha_inicio: string;
+  fecha_fin: string;
   hora_inicio: string;
+  hora_fin: string;
   duracion_horas: number;
   total: number;
   estado: string;
   notas: string;
   consultorios: {
-    nombre: string;
-    ubicacion: string;
+    titulo: string;
+    direccion: string;
   };
   profiles: {
-    nombre: string;
-    apellidos: string;
+    full_name: string;
     telefono: string;
     email: string;
   };
@@ -70,12 +71,11 @@ export default function ReservasPage() {
         .select(`
           *,
           consultorios (
-            nombre,
-            ubicacion
+            titulo,
+            direccion
           ),
           profiles (
-            nombre,
-            apellidos,
+            full_name,
             telefono,
             email
           )
@@ -84,7 +84,7 @@ export default function ReservasPage() {
       // Filtrar por tipo de usuario
       if (user.role === "user") {
         // Los usuarios pueden ver tanto sus reservas como las de sus consultorios
-        query = query.or(`profesional_id.eq.${user.id},consultorios.propietario_id.eq.${user.id}`);
+        query = query.or(`usuario_id.eq.${user.id},consultorios.propietario_id.eq.${user.id}`);
       }
 
       // Aplicar filtros
@@ -96,7 +96,7 @@ export default function ReservasPage() {
         query = query.eq('consultorio_id', consultorioFilter);
       }
 
-      const { data, error } = await query.order('fecha', { ascending: false });
+      const { data, error } = await query.order('fecha_inicio', { ascending: false });
 
       if (error) {
         console.error('Error fetching reservas:', error);
@@ -107,8 +107,8 @@ export default function ReservasPage() {
       let filteredData = data || [];
       if (searchTerm) {
         filteredData = filteredData.filter(reserva => 
-          reserva.consultorios?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          `${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`.toLowerCase().includes(searchTerm.toLowerCase())
+          reserva.consultorios?.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          reserva.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
         );
       }
 
@@ -298,11 +298,11 @@ export default function ReservasPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-semibold text-foreground">
-                            {reserva.consultorios?.nombre}
+                            {reserva.consultorios?.titulo}
                           </h3>
-                          <p className="text-muted-foreground">
-                            {`${reserva.profiles?.nombre} ${reserva.profiles?.apellidos}`}
-                          </p>
+                                                      <p className="text-muted-foreground">
+                              {reserva.profiles?.full_name}
+                            </p>
                         </div>
                         <Badge variant={getStatusBadgeVariant(reserva.estado)}>
                           {getStatusText(reserva.estado)}
@@ -313,7 +313,7 @@ export default function ReservasPage() {
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
-                            {new Date(reserva.fecha).toLocaleDateString('es-ES')}
+                            {new Date(reserva.fecha_inicio).toLocaleDateString('es-ES')}
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">

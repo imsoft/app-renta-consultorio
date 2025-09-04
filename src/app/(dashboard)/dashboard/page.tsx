@@ -116,14 +116,14 @@ export default function DashboardPage() {
       .select(`
         *,
         consultorios (
-          nombre,
-          ubicacion,
-          precio_hora
+          titulo,
+          direccion,
+          precio_por_hora
         )
       `)
-      .eq('profesional_id', user.id)
+      .eq('usuario_id', user.id)
       .eq('estado', 'confirmada')
-      .gte('fecha', new Date().toISOString().split('T')[0]);
+      .gte('fecha_inicio', new Date().toISOString().split('T')[0]);
 
     // Obtener favoritos del usuario
     const { data: favoritos, error: favoritosError } = await supabase
@@ -226,7 +226,7 @@ export default function DashboardPage() {
       .select('total')
       .eq('consultorios.propietario_id', user.id)
       .eq('estado', 'confirmada')
-      .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+      .gte('fecha_inicio', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
 
     // Obtener próxima reserva
     const { data: proximaReserva, error: proximaError } = await supabase
@@ -234,17 +234,16 @@ export default function DashboardPage() {
       .select(`
         *,
         consultorios (
-          nombre
+          titulo
         ),
         profiles (
-          nombre,
-          apellidos
+          full_name
         )
       `)
       .eq('consultorios.propietario_id', user.id)
       .eq('estado', 'confirmada')
-      .gte('fecha', new Date().toISOString().split('T')[0])
-      .order('fecha', { ascending: true })
+      .gte('fecha_inicio', new Date().toISOString().split('T')[0])
+      .order('fecha_inicio', { ascending: true })
       .order('hora_inicio', { ascending: true })
       .limit(1)
       .single();
@@ -261,16 +260,16 @@ export default function DashboardPage() {
           .from('reservas')
           .select('*')
           .eq('consultorio_id', consultorio.id)
-          .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+          .gte('fecha_inicio', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
 
         const totalReservas = reservasMes?.length || 0;
         const ocupacion = totalReservas > 0 ? Math.min(100, (totalReservas / 30) * 100) : 0; // Estimación simple
 
         return {
           id: consultorio.id,
-          nombre: consultorio.nombre,
-          ubicacion: consultorio.ubicacion,
-          precio: consultorio.precio_hora,
+          nombre: consultorio.titulo,
+          ubicacion: consultorio.direccion,
+          precio: consultorio.precio_por_hora,
           ocupacion: Math.round(ocupacion),
           reservasMes: totalReservas
         };
@@ -314,7 +313,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Bienvenido, {user?.nombre}
+              Bienvenido, {user?.email}
             </h1>
             <p className="text-muted-foreground mt-1">
               {user?.role === "admin" ? "Panel de Administrador" : "Panel de Usuario"}

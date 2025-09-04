@@ -114,7 +114,7 @@ export default function GestionarConsultorioPage() {
           estado,
           total,
           created_at,
-          profesionales:profiles!reservas_profesional_id_fkey(
+          profesionales:profiles!reservas_usuario_id_fkey(
             nombre,
             email,
             telefono
