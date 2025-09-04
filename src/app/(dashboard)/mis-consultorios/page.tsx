@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Forzar renderizado dinámico para evitar problemas con Supabase
 export const dynamic = 'force-dynamic';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -46,33 +46,65 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthStore } from "@/stores/authStore";
+import { useSupabaseStore } from "@/stores/supabaseStore";
 import { formatDate, formatCurrency, formatNumber } from "@/lib/utils";
 
-// Array vacío para cuando no hay consultorios
-interface ConsultorioBasico {
-  id: number;
-  nombre: string;
-  ubicacion: string;
-  precio: number;
-  calificacion: number;
-  reseñas: number;
+// Interfaz para consultorios del usuario
+interface ConsultorioUsuario {
+  id: string;
+  titulo: string;
+  direccion: string;
+  ciudad: string;
   estado: string;
-  reservasMes: number;
-  ingresosMes: number;
-  ultimaReserva: string | null;
-  proximaReserva: string | null;
-  especialidades: string[];
-  ocupacion: number;
-  verificado: boolean;
+  precio_por_hora: number;
+  calificacion_promedio: number;
+  total_calificaciones: number;
+  activo: boolean;
+  aprobado: boolean;
+  total_reservas: number;
+  metros_cuadrados?: number;
+  especialidades?: string[];
+  created_at: string;
 }
-
-const misConsultorios: ConsultorioBasico[] = [];
 
 export default function MisConsultoriosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
-  const [sortBy, setSortBy] = useState("nombre");
+  const [sortBy, setSortBy] = useState("titulo");
+  const [consultorios, setConsultorios] = useState<ConsultorioUsuario[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user, isAuthenticated } = useAuthStore();
+  const { getMyConsultorios } = useSupabaseStore();
+
+  // Función para obtener consultorios del usuario
+  const fetchConsultorios = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await getMyConsultorios();
+      
+      if (error) {
+        console.error('Error fetching consultorios:', error);
+        return;
+      }
+      
+      if (data) {
+        setConsultorios(data);
+      }
+    } catch (error) {
+      console.error('Error fetching consultorios:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar consultorios cuando el usuario esté autenticado
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchConsultorios();
+    }
+  }, [isAuthenticated, user]);
 
   // Verificar si el usuario está autenticado
   if (!isAuthenticated) {
@@ -97,25 +129,28 @@ export default function MisConsultoriosPage() {
   }
 
   // Filtrar y ordenar consultorios
-  const filteredConsultorios = misConsultorios
+  const filteredConsultorios = consultorios
     .filter(consultorio => {
-      const matchesSearch = consultorio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           consultorio.ubicacion.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "todos" || consultorio.estado === statusFilter;
+      const matchesSearch = consultorio.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           consultorio.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           consultorio.ciudad.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "todos" || 
+                           (statusFilter === "activo" && consultorio.activo) ||
+                           (statusFilter === "inactivo" && !consultorio.activo);
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case "nombre":
-          return a.nombre.localeCompare(b.nombre);
+        case "titulo":
+          return a.titulo.localeCompare(b.titulo);
         case "precio":
-          return b.precio - a.precio;
+          return b.precio_por_hora - a.precio_por_hora;
         case "calificacion":
-          return b.calificacion - a.calificacion;
+          return (b.calificacion_promedio || 0) - (a.calificacion_promedio || 0);
         case "reservas":
-          return b.reservasMes - a.reservasMes;
-        case "ingresos":
-          return b.ingresosMes - a.ingresosMes;
+          return (b.total_reservas || 0) - (a.total_reservas || 0);
+        case "fecha":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         default:
           return 0;
       }
@@ -180,7 +215,7 @@ export default function MisConsultoriosPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total consultorios</p>
-                  <p className="text-2xl font-bold text-foreground">{formatNumber(misConsultorios.length)}</p>
+                  <p className="text-2xl font-bold text-foreground">{formatNumber(consultorios.length)}</p>
                 </div>
                 <Building className="h-8 w-8 text-primary" />
               </div>
@@ -192,7 +227,7 @@ export default function MisConsultoriosPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Consultorios activos</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {formatNumber(misConsultorios.filter(c => c.estado === "activo").length)}
+                    {formatNumber(consultorios.filter(c => c.activo).length)}
                   </p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-500" />
@@ -203,9 +238,9 @@ export default function MisConsultoriosPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Reservas este mes</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total reservas</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {formatNumber(misConsultorios.reduce((sum, c) => sum + c.reservasMes, 0))}
+                    {formatNumber(consultorios.reduce((sum, c) => sum + (c.total_reservas || 0), 0))}
                   </p>
                 </div>
                 <Calendar className="h-8 w-8 text-primary" />
@@ -216,12 +251,15 @@ export default function MisConsultoriosPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Ingresos del mes</p>
+                  <p className="text-sm font-medium text-muted-foreground">Calificación promedio</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(misConsultorios.reduce((sum, c) => sum + c.ingresosMes, 0))}
+                    {consultorios.length > 0 
+                      ? (consultorios.reduce((sum, c) => sum + (c.calificacion_promedio || 0), 0) / consultorios.length).toFixed(1)
+                      : '0.0'
+                    }
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-500" />
+                <Star className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
@@ -284,121 +322,125 @@ export default function MisConsultoriosPage() {
                     <TableHead>Precio</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Calificación</TableHead>
-                    <TableHead>Ocupación</TableHead>
-                    <TableHead>Reservas mes</TableHead>
-                    <TableHead>Ingresos mes</TableHead>
-                    <TableHead>Próxima reserva</TableHead>
+                    <TableHead>Reservas</TableHead>
+                    <TableHead>Especialidades</TableHead>
+                    <TableHead>Fecha creación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredConsultorios.map((consultorio) => (
-                    <TableRow key={consultorio.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-foreground">{consultorio.nombre}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {consultorio.especialidades.slice(0, 2).join(", ")}
-                            {consultorio.especialidades.length > 2 && "..."}
-                          </div>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        <div className="flex items-center justify-center">
+                          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Cargando consultorios...
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {consultorio.ubicacion}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{formatCurrency(consultorio.precio)}/hora</div>
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(consultorio.estado)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                          <span className="font-medium">{consultorio.calificacion}</span>
-                          <span className="text-sm text-muted-foreground ml-1">
-                            ({formatNumber(consultorio.reseñas)})
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className={`font-medium ${getOcupacionColor(consultorio.ocupacion)}`}>
-                          {consultorio.ocupacion}%
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{formatNumber(consultorio.reservasMes)}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{formatCurrency(consultorio.ingresosMes)}</div>
-                      </TableCell>
-                      <TableCell>
-                        {consultorio.proximaReserva ? (
-                          <div className="text-sm text-muted-foreground">
-                            {formatDate(consultorio.proximaReserva)}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">Sin reservas</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/consultorios/${consultorio.id}`}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Ver detalles
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/consultorios/${consultorio.id}/editar`}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Editar
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : filteredConsultorios.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        <div className="text-center">
+                          <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-lg font-semibold text-foreground mb-2">No se encontraron consultorios</p>
+                          <p className="text-muted-foreground mb-4">
+                            {searchTerm || statusFilter !== "todos" 
+                              ? "No hay consultorios que coincidan con los filtros aplicados."
+                              : "Aún no tienes consultorios registrados"
+                            }
+                          </p>
+                          <Button asChild>
+                            <Link href="/consultorios/crear">
+                              <Plus className="h-4 w-4 mr-2" />
+                              Crear tu primer consultorio
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredConsultorios.map((consultorio) => (
+                      <TableRow key={consultorio.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-foreground">{consultorio.titulo}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {consultorio.especialidades?.slice(0, 2).join(", ") || "Sin especialidades"}
+                              {consultorio.especialidades && consultorio.especialidades.length > 2 && "..."}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4 mr-1" />
+                            {consultorio.direccion}, {consultorio.ciudad}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{formatCurrency(consultorio.precio_por_hora)}/hora</div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(consultorio.activo ? "activo" : "inactivo")}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
+                            <span className="font-medium">{consultorio.calificacion_promedio?.toFixed(1) || "0.0"}</span>
+                            <span className="text-sm text-muted-foreground ml-1">
+                              ({formatNumber(consultorio.total_calificaciones || 0)})
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{formatNumber(consultorio.total_reservas || 0)}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-muted-foreground">
+                            {consultorio.especialidades?.slice(0, 2).join(", ") || "Sin especialidades"}
+                            {consultorio.especialidades && consultorio.especialidades.length > 2 && "..."}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-muted-foreground">
+                            {formatDate(consultorio.created_at)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/consultorios/${consultorio.id}`}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Ver detalles
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/consultorios/${consultorio.id}/editar`}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
 
-            {filteredConsultorios.length === 0 && (
-              <div className="text-center py-12">
-                <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  No se encontraron consultorios
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm || statusFilter !== "todos" 
-                    ? "Intenta ajustar los filtros de búsqueda"
-                    : "Aún no tienes consultorios registrados"
-                  }
-                </p>
-                {!searchTerm && statusFilter === "todos" && (
-                  <Button asChild>
-                    <Link href="/consultorios/crear">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Crear tu primer consultorio
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            )}
+
           </CardContent>
         </Card>
       </main>
